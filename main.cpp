@@ -1,24 +1,17 @@
 #include "graph_logic.h"
 #include <iostream>
-#include <conio.h> // for _getch()
 
 int main() {
     GraphRenderer renderer;
 
-    std::cout << "QuantaGraph Prototype - Press [space] to step through graph views.\n\n";
+    std::cout << "Cognitive Behavioral Therapy - Graph Visualization\n\n";
 
-    for (int view = 0; view < 3; ++view) {
-        renderer.loadGraph(view);
-        renderer.draw();
-        renderer.renderToConsole();
+    // Load and display the first graph with CBT labels
+    renderer.loadGraph(0);
+    renderer.draw();
+    renderer.renderToConsole();
 
-        if (view < 2) {
-            std::cout << "\n[SPACE] for next graph...\n";
-            while (_getch() != ' ');
-        }
-    }
+    std::cout << "\n--- End of Graph ---\n";
 
-    std::cout << "\nAll graph views displayed. Press any key to exit.\n";
-    _getch();
     return 0;
 }
