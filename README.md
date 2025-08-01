@@ -35,3 +35,9 @@ This application is designed to be compiled with g++ on a Windows system.
 
 *   **Press the [spacebar]** to cycle through the three different graph views.
 *   After the final (16-node) graph is displayed, the application will show an exit message. Press any key to close the program.
+
+## Detailed Purpose
+
+The primary purpose of this application is to demonstrate a method for representing a three-dimensional undirected network graph within the limitations of a standard terminal console. The rendering is done using only basic ASCII characters (`X`, `/`, `\`) and does not rely on colors or special graphics capabilities.
+
+The third dimension (depth, or the z-axis) is simulated by varying the size of the nodes on the 2D console screen. Larger nodes are intended to be perceived as being closer to the viewer, while smaller nodes appear farther away. This technique, combined with occlusion (drawing nodes over the lines representing edges), creates a simple but effective illusion of depth.
