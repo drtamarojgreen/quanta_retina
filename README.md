@@ -13,6 +13,10 @@ This project is a C++ console application for Windows that demonstrates the rend
     *   **Medium Node:** 3x3 characters
     *   **Far Node:** 1x1 character
 *   **Edge Rendering:** Connections between nodes are drawn using `/` and `\` characters to represent lines.
+*   **Graph View:** The application renders a static 4-node graph representing a core CBT exercise.
+*   **Node Labels:** Nodes are labeled.
+*   **Variable Node Sizing:** Nodes are rendered as squares of 'X' characters, with their size indicating visual proximity:
+
 *   **Occlusion:** The application demonstrates occlusion by drawing nodes on top of the edges, making it appear as if the nodes are closer to the viewer.
 
 ## Building and Running
