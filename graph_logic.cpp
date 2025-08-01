@@ -112,8 +112,8 @@ void GraphRenderer::loadGraph(int version) {
     }
     else if (version == 1) { // 8-node graph
         graph.nodes = {
-            {0, 10, 3, 3, "Trigger"}, {1, 30, 3, 3, "Automatic Thought"}, {2, 50, 3, 3, "Feelings"}, {3, 70, 3, 3, "Behavior"},
-            {4, 10, 20, 3, "Alternative Thought"}, {5, 30, 20, 3, "New Feelings"}, {6, 50, 20, 3, "New Behavior"}, {7, 70, 20, 1, ""}
+            {0, 10, 3, 3, "Trigger"}, {1, 30, 3, 3, "Automatic Thought"}, {2, 50, 3, 3, "Feeling"}, {3, 70, 3, 3, "Action"},
+            {4, 10, 20, 3, "Alternative Thought"}, {5, 30, 20, 3, "New Feeling"}, {6, 50, 20, 3, "New Action"}, {7, 70, 20, 1, "Outcome"}
         };
         for (int i = 0; i < 4; ++i)
             graph.edges.push_back({i, i+4});
@@ -122,9 +122,16 @@ void GraphRenderer::loadGraph(int version) {
         graph.edges.push_back({5,6});
     }
     else { // 16-node graph
-        for (int i = 0; i < 4; ++i)
-            for (int j = 0; j < 4; ++j)
-                graph.nodes.push_back({i*4+j, 5 + j*18, 3 + i*6, 1, ""});
+        graph.nodes = {
+            // Core Beliefs
+            {0, 5, 3, 1, "Core Belief 1"}, {1, 23, 3, 1, "Core Belief 2"}, {2, 41, 3, 1, "Core Belief 3"}, {3, 59, 3, 1, "Core Belief 4"},
+            // Intermediate Beliefs
+            {4, 5, 9, 1, "Rule 1"}, {5, 23, 9, 1, "Rule 2"}, {6, 41, 9, 1, "Attitude 1"}, {7, 59, 9, 1, "Attitude 2"},
+            // Situational Triggers
+            {8, 5, 15, 1, "Situation A"}, {9, 23, 15, 1, "Situation B"}, {10, 41, 15, 1, "Situation C"}, {11, 59, 15, 1, "Situation D"},
+            // Automatic Thoughts
+            {12, 5, 21, 1, "AutoThought A"}, {13, 23, 21, 1, "AutoThought B"}, {14, 41, 21, 1, "AutoThought C"}, {15, 59, 21, 1, "AutoThought D"}
+        };
         for (int i = 0; i < 16; ++i) {
             if (i % 4 != 3) graph.edges.push_back({i, i+1});
             if (i < 12) graph.edges.push_back({i, i+4});
