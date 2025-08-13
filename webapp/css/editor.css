@@ -1,0 +1,190 @@
+/* Palette styles */
+.palette {
+    width: 200px;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.palette h2 {
+    margin-top: 0;
+    font-size: 1.2em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.palette-node {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    cursor: grab;
+    text-align: center;
+    user-select: none; /* Prevent text selection while dragging */
+}
+
+.palette-node:hover {
+    background-color: #eef;
+    border-color: #99c;
+}
+
+/* Canvas styles */
+.canvas {
+    flex-grow: 1;
+    position: relative; /* Crucial for positioning nodes */
+    background-color: #e9e9e9;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow: auto; /* Enable scrolling if content overflows */
+}
+
+/* Styles for nodes placed on the canvas */
+.workflow-node {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #3498db;
+    border-radius: 5px;
+    padding: 15px;
+    min-width: 150px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    cursor: move;
+    user-select: none;
+}
+
+.workflow-node.input {
+    border-color: #2ecc71; /* Green for input */
+}
+
+.workflow-node.process {
+    border-color: #f1c40f; /* Yellow for process */
+}
+
+.workflow-node.output {
+    border-color: #e74c3c; /* Red for output */
+}
+
+.workflow-node h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    font-size: 1em;
+}
+
+.dragging {
+    opacity: 0.5;
+    border: 2px dashed #333;
+    z-index: 1000; /* Ensure dragging node is on top */
+}
+
+/* --- Connection Logic Styles --- */
+
+/* SVG layer for connections */
+#svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allows clicks to pass through to nodes below */
+    z-index: 0; /* Position behind nodes but above canvas background */
+}
+
+#svg-layer path {
+    stroke: #5a9bd5;
+    stroke-width: 3px;
+    fill: none;
+}
+
+/* Connection Port styles */
+.connection-port {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: #fff;
+    border: 2px solid #5a9bd5;
+    border-radius: 50%;
+    cursor: crosshair;
+    z-index: 10; /* Ensure ports are on top of the node body */
+}
+
+.connection-port.output {
+    right: -9px; /* Position on the right edge */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-port.input {
+    left: -9px; /* Position on the left edge */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-port:hover {
+    background-color: #f1c40f; /* Highlight on hover */
+}
+
+/* --- Selection Styles --- */
+.workflow-node.selected {
+    border: 2px solid #e74c3c;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+}
+
+#svg-layer path.selected {
+    stroke: #e74c3c;
+    stroke-width: 4px;
+    stroke-dasharray: 8, 4;
+    pointer-events: auto; /* Make path clickable when selected */
+}
+
+/* --- Properties Panel Styles --- */
+.properties-panel {
+    width: 250px;
+    background-color: #fafafa;
+    border-left: 1px solid #ddd;
+    padding: 15px;
+    transition: width 0.2s ease-in-out;
+    overflow: hidden;
+}
+
+.properties-panel.hidden {
+    width: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.properties-panel h3 {
+    margin-top: 0;
+    font-size: 1.2em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    white-space: nowrap;
+}
+
+.properties-panel .property {
+    margin-bottom: 15px;
+    white-space: nowrap;
+}
+
+.properties-panel label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.properties-panel .property-input {
+    width: calc(100% - 12px);
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.properties-panel .no-selection {
+    color: #888;
+    white-space: nowrap;
+}

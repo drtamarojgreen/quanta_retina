@@ -1,0 +1,101 @@
+/* Reset and basic setup */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.controls button {
+    padding: 8px 16px;
+    font-size: 14px;
+    margin-left: 10px;
+    background-color: #5a9bd5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background-color: #4a8ac5;
+}
+
+.controls button.execute {
+    background-color: #27ae60;
+}
+
+.controls button.execute:hover {
+    background-color: #229954;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.app-container {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scroll */
+}
+
+/* --- Log Panel Styles --- */
+.log-panel {
+    height: 150px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #95a5a6;
+}
+
+.log-header {
+    background-color: #34495e;
+    padding: 5px 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+#clear-log-btn {
+    background: #7f8c8d;
+    border: none;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 3px 10px;
+}
+
+#clear-log-btn:hover {
+    background: #95a5a6;
+}
+
+.log-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+
+.log-content div {
+    padding: 2px 10px;
+    border-bottom: 1px solid #34495e;
+}

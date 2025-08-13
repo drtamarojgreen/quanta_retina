@@ -3,12 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Web App</title>
-    <link rel="stylesheet" href="style.css">
+    <title>QuantaGraph Workflow Designer</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/editor.css">
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is a simple web application.</p>
-    <script src="script.js"></script>
+    <header>
+        <h1>QuantaGraph Workflow Designer</h1>
+        <div class="controls">
+            <button id="export-btn">Export</button>
+            <button id="import-btn">Import</button>
+            <button id="execute-btn" class="execute">Execute</button>
+        </div>
+    </header>
+    <main class="app-container">
+        <aside class="palette">
+            <h2>Nodes</h2>
+            <div class="palette-node" draggable="true" data-node-type="input">Input Node</div>
+            <div class="palette-node" draggable="true" data-node-type="process">Process Node</div>
+            <div class="palette-node" draggable="true" data-node-type="output">Output Node</div>
+        </aside>
+        <section id="canvas" class="canvas">
+            <!-- Workflow nodes will be dropped here -->
+        </section>
+        <aside id="properties-panel" class="properties-panel hidden">
+            <h3>Properties</h3>
+            <div id="properties-content">
+                <p class="no-selection">Select a node to edit its properties.</p>
+            </div>
+        </aside>
+    </main>
+
+    <footer id="log-panel" class="log-panel">
+        <div class="log-header">
+            <span>LOG</span>
+            <button id="clear-log-btn" title="Clear Log">Clear</button>
+        </div>
+        <div id="log-content" class="log-content"></div>
+    </footer>
+
+    <template id="node-properties-template">
+        <div class="property">
+            <label for="prop-title">Title</label>
+            <input type="text" id="prop-title" class="property-input">
+        </div>
+    </template>
+
+    <script src="js/main.js"></script>
+    <script src="js/editor.js"></script>
 </body>
 </html>
