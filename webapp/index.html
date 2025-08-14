@@ -3,12 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Web App</title>
-    <link rel="stylesheet" href="style.css">
+    <title>QuantaGraph Workflow Designer</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/editor.css">
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is a simple web application.</p>
-    <script src="script.js"></script>
+    <header>
+        <h1>QuantaGraph Workflow Designer</h1>
+        <div class="controls">
+            <button id="export-btn">Export</button>
+            <button id="import-btn">Import</button>
+            <button id="execute-btn" class="execute">Execute</button>
+        </div>
+    </header>
+    <main class="app-container">
+        <aside class="palette">
+            <h2>Components</h2>
+            <div class="palette-node" draggable="true" data-node-type="quanta_porto">quanta_porto</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_synapse">quanta_synapse</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_glia">quanta_glia</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_tissu">quanta_tissu</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_alarma">quanta_alarma</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_cerebra">quanta_cerebra</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_cogno">quanta_cogno</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_dorsa">quanta_dorsa</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_ethos">quanta_ethos</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_lista">quanta_lista</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_memora">quanta_memora</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_occipita">quanta_occipita</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_pulsa">quanta_pulsa</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_quilida">quanta_quilida</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_retina">quanta_retina</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_sensa">quanta_sensa</div>
+            <div class="palette-node" draggable="true" data-node-type="quanta_serene">quanta_serene</div>
+        </aside>
+        <section id="canvas" class="canvas">
+            <div id="world">
+                <!-- SVG layer and workflow nodes will be appended here by JS -->
+            </div>
+        </section>
+        <aside id="properties-panel" class="properties-panel hidden">
+            <h3>Properties</h3>
+            <div id="properties-content">
+                <p class="no-selection">Select a node to edit its properties.</p>
+            </div>
+        </aside>
+    </main>
+
+    <section class="descriptions-container">
+        <h2>About the Quanta Series</h2>
+        <div class="project-grid">
+            <div class="project-card">
+                <h3>quanta_porto</h3>
+                <p>A framework for developing and interacting with local LLMs. It features a sandboxed cognitive environment and a custom command language called PQL (QuantaPorto Language) to issue structured tasks to the model. It emphasizes offline autonomy, rule-based guidance with philosophical consequences, and includes a comprehensive ethics and bias detection system.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_synapse</h3>
+                <p>The central communication bus for the Quanta ecosystem. It acts as a C++ and Python connector tool, providing a unified interface for asynchronous, message-based communication and data exchange between all the different `quanta_*` modules. It enforces a standardized XML data format and integrates with `quanta_ethos` for policy validation.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_glia</h3>
+                <p>A subsystem designed to autonomously manage knowledge repositories. It simulates the behavior of biological glial cells by intelligently spawning new repositories to fill knowledge gaps and pruning old or redundant ones to maintain system health. It is the primary entry point for setting up and testing the entire PrismQuanta ecosystem.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_tissu</h3>
+                <p>A minimal, transformer-based language model inference engine built in Python with NumPy. It serves as an educational tool and the foundation for an agentic coding assistant. It includes `TissLang`, a declarative language for orchestrating agent workflows, and `TissDB`, a high-performance NoSQL database written in C++.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_alarma</h3>
+                <p>A proactive monitoring and advisory system for LLM agent outputs. It acts as a real-time alert system for anomalous or risky activities by using anomaly detection and risk scoring to provide a critical layer of oversight for autonomous AI systems.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_cerebra</h3>
+                <p>A high-performance C++17 application that simulates and visualizes brain activity by generating real-time, ASCII-based video animations from JSON input. It is built with zero external dependencies and serves as a foundation for experimenting with advanced graphics modeling on limited resources.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_cogno</h3>
+                <p>A C++ application that provides a simulated API for exploring the relationship between genomics and mental health. Built with no external dependencies, it offers endpoints for querying gene data, analyzing pathways, and assessing drug-gene interactions, and includes a from-scratch BDD testing framework.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_dorsa</h3>
+                <p>An end-to-end pipeline for neuroscientific modeling. It integrates a high-performance C++ simulation core, Python-based dynamic plotting with `matplotlib`, R-powered statistical analysis with `ggplot2`, and video composition via `FFmpeg` to simulate, visualize, and analyze brain regions and synaptic plasticity.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_ethos</h3>
+                <p>This repository contains the guiding philosophy and ethical framework for the entire `PrismQuanta` ecosystem. It outlines the project's vision for a local-first, modular, and ethically-governed AI, and details the roles of the various `quanta_*` modules. It serves as the non-bypassable conscience for all system actions.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_lista</h3>
+                <p>An intelligent coordination and management layer for multi-agent LLM systems. It acts as a central nervous system, providing dynamic task scheduling, prioritization, and multi-agent coordination to prevent redundant work and optimize collective workflows. The architecture is distributed across multiple repositories.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_memora</h3>
+                <p>A powerful C++ project template generator that creates well-structured, modern C++17 projects. It supports multiple configurations including console applications, libraries, and GUI applications, and integrates build systems like CMake and Makefiles, along with unit testing frameworks.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_occipita</h3>
+                <p>A developer tool written in PowerShell designed to bootstrap new QuantaSoft modules. It accelerates development by generating standardized boilerplate code, YAML configuration files, documentation, Git repositories, issue templates, and unit test skeletons to ensure consistency across the project.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_pulsa</h3>
+                <p>A sophisticated monitoring and advisory tool to ensure the reliability and ethical performance of LLM agents. It continuously measures response coherence, latency, and internal consistency to detect and flag potential hallucinations or "fibbing" in real-time, providing an essential layer of oversight.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_quilida</h3>
+                <p>A monitoring and advisory application that performs rigorous quality control on LLM-generated content. It ensures factual accuracy, reduces bias, and verifies alignment by cross-referencing outputs with trusted data sources, providing essential oversight for multi-agent systems.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_retina</h3>
+                <p>A C++ console application for Windows that demonstrates the rendering of a 3D undirected network graph in an ASCII terminal. It simulates depth by varying node sizes and uses occlusion to create a simple but effective visual representation of graph structures.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_sensa</h3>
+                <p>An autonomous workflow AI agent framework for resilient, self-aware operation in constrained Linux environments. It uses a C++ parent controller to schedule and monitor a Python agent that executes single, discrete actions and learns exclusively from local resources like man pages, emphasizing security and stability.</p>
+            </div>
+            <div class="project-card">
+                <h3>quanta_serene</h3>
+                <p>A C++ application for managing conflicting tasks between AI agents. It provides a framework for prioritizing tasks, resolving scheduling conflicts by checking dependencies, and managing agent status (`IDLE`, `BUSY`) to ensure smooth and efficient multi-agent operations.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer id="log-panel" class="log-panel">
+        <div class="log-header">
+            <span>LOG</span>
+            <button id="clear-log-btn" title="Clear Log">Clear</button>
+        </div>
+        <div id="log-content" class="log-content"></div>
+    </footer>
+
+    <template id="node-properties-template">
+        <div class="property">
+            <label for="prop-title">Title</label>
+            <input type="text" id="prop-title" class="property-input">
+        </div>
+    </template>
+
+    <script src="js/main.js"></script>
+    <script src="js/editor.js"></script>
+
+    <div id="context-menu" class="context-menu hidden">
+        <ul>
+            <li id="context-delete">Delete</li>
+        </ul>
+    </div>
+
+    <div id="tooltip" class="tooltip hidden"></div>
 </body>
 </html>
