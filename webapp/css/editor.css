@@ -1,10 +1,11 @@
 /* Palette styles */
 .palette {
-    width: 200px;
-    background-color: #fff;
+    width: 240px; /* A bit wider for longer names */
+    background-color: #fdfdfd;
     border-right: 1px solid #ddd;
     padding: 15px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    overflow-y: auto; /* Add scroll for many components */
 }
 
 .palette h2 {
@@ -15,31 +16,45 @@
 }
 
 .palette-node {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fff;
     cursor: grab;
-    text-align: center;
+    text-align: left;
     user-select: none; /* Prevent text selection while dragging */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 .palette-node:hover {
-    background-color: #eef;
-    border-color: #99c;
+    background-color: #f0f8ff;
+    border-color: #5a9bd5;
 }
 
 /* Canvas styles */
 .canvas {
     flex-grow: 1;
     position: relative; /* Crucial for positioning nodes */
+    overflow: hidden; /* We handle overflow manually for panning */
     background-color: #e9e9e9;
     background-image:
         linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
     background-size: 20px 20px;
-    overflow: auto; /* Enable scrolling if content overflows */
+}
+
+#world {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-origin: 0 0;
+}
+
+.canvas.panning {
+    cursor: grabbing;
 }
 
 /* Styles for nodes placed on the canvas */
@@ -187,4 +202,58 @@
 .properties-panel .no-selection {
     color: #888;
     white-space: nowrap;
+}
+
+/* --- Context Menu Styles --- */
+.context-menu {
+    position: absolute;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 2000;
+    border-radius: 4px;
+    padding: 5px 0;
+}
+
+.context-menu.hidden {
+    display: none;
+}
+
+.context-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.context-menu li {
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.context-menu li:hover {
+    background-color: #5a9bd5;
+    color: white;
+}
+
+/* --- Tooltip Styles --- */
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 3000; /* Highest z-index */
+    max-width: 300px;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    white-space: normal;
+}
+
+.tooltip.hidden {
+    display: none;
 }
