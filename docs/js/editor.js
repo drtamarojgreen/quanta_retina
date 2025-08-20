@@ -23,6 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
         quanta_serene: "A C++ application for managing conflicting tasks between AI agents. It provides a framework for prioritizing tasks, resolving scheduling conflicts by checking dependencies, and managing agent status (`IDLE`, `BUSY`) to ensure smooth and efficient multi-agent operations."
     };
 
+    // --- Default Workflow ---
+    const defaultWorkflow = {
+        nodes: [
+            { id: 'node-0', type: 'quanta_porto', left: '200px', top: '150px', title: 'Input Data' },
+            { id: 'node-1', type: 'quanta_synapse', left: '500px', top: '150px', title: 'Process Step' },
+            { id: 'node-2', type: 'quanta_cerebra', left: '800px', top: '150px', title: 'Output Result' }
+        ],
+        connections: [
+            { id: 'conn-node-0-node-1', from: 'node-0', to: 'node-1' },
+            { id: 'conn-node-1-node-2', from: 'node-1', to: 'node-2' }
+        ]
+    };
+
     // --- State Management ---
     let nodeIdCounter = 0, connections = [], draggedElement = null, selectedElement = null, isDrawingConnection = false, connectionStartPort = null, previewPath = null, isPanning = false, isSpacebarDown = false, panStart = { x: 0, y: 0 }, view = { x: 0, y: 0, scale: 1 }, contextTarget = null;
 
@@ -109,7 +122,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function getPortCenter(port) { const node = port.parentElement; const nodeX = parseFloat(node.style.left); const nodeY = parseFloat(node.style.top); const portX = port.offsetLeft + port.offsetWidth / 2; const portY = port.offsetTop + port.offsetHeight / 2; return { x: nodeX + portX, y: nodeY + portY }; }
     function updateConnectionPath(path, startPort, endPort) { path.setAttribute('marker-end', 'url(#arrowhead)'); const s = getPortCenter(startPort); const e = getPortCenter(endPort); path.setAttribute('d', `M${s.x},${s.y} C${s.x + 50},${s.y} ${e.x - 50},${e.y} ${e.x},${e.y}`); }
     function updateConnectionsForNode(nodeId) { connections.forEach(c => { if (c.from === nodeId || c.to === nodeId) { const p = document.getElementById(c.id); if (p) { const s = document.getElementById(c.from).querySelector('.output'); const e = document.getElementById(c.to).querySelector('.input'); updateConnectionPath(p, s, e); } } }); }
+
+    function loadWorkflow(workflow) {
+        // Clear existing workflow
+        world.querySelectorAll('.workflow-node').forEach(n => n.remove());
+        svgLayer.querySelectorAll('path[id^="conn-"]').forEach(p => p.remove());
+        connections.length = 0;
+        nodeIdCounter = 0;
+
+        // Load nodes
+        if (workflow.nodes) {
+            workflow.nodes.forEach(nodeData => {
+                createNodeOnCanvas(nodeData);
+            });
+        }
+
+        // Load connections
+        if (workflow.connections) {
+            workflow.connections.forEach(connData => {
+                const { id, from, to } = connData;
+                const fromNode = document.getElementById(from);
+                const toNode = document.getElementById(to);
+                const startPort = fromNode ? fromNode.querySelector('.output') : null;
+                const endPort = toNode ? toNode.querySelector('.input') : null;
+
+                if (startPort && endPort) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.id = id;
+                    connections.push(connData); // Add to state
+                    svgLayer.appendChild(path);
+                    updateConnectionPath(path, startPort, endPort);
+                    path.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectElement(path);
+                    });
+                }
+            });
+        }
+    }
     function exportWorkflow() { const nodes = Array.from(document.querySelectorAll('.workflow-node')).map(n => ({ id: n.id, type: n.classList[1], left: n.style.left, top: n.style.top, title: n.querySelector('h3').textContent })); const workflow = { nodes, connections }; const dataStr = JSON.stringify(workflow, null, 2); const dataBlob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(dataBlob); const a = document.createElement('a'); a.href = url; a.download = 'workflow.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); addLogMessage('SUCCESS', 'Workflow exported to workflow.json'); }
     function addLogMessage(level, message) { const e = document.createElement('div'); const t = new Date().toLocaleTimeString(); e.innerHTML = `[${t}] [${level}] ${message}`; logContent.appendChild(e); logContent.scrollTop = logContent.scrollHeight; }
     function simulateExecution() { logContent.innerHTML = ''; addLogMessage('INFO', 'Starting workflow execution simulation...'); const nodes = Array.from(document.querySelectorAll('.workflow-node')); if (nodes.length === 0) { addLogMessage('WARN', 'Workflow is empty. Nothing to execute.'); return; } addLogMessage('INFO', `Publishing workflow with ${nodes.length} nodes and ${connections.length} connections to quanta_synapse...`); let delay = 1000; setTimeout(() => addLogMessage('INFO', 'Received: quanta_porto acknowledged job.'), delay); nodes.forEach(node => { delay += Math.random() * 1000 + 500; setTimeout(() => addLogMessage('INFO', `Executing node: ${node.querySelector('h3').textContent} (${node.id})`), delay); }); delay += 1500; setTimeout(() => addLogMessage('SUCCESS', 'Workflow simulation finished successfully.'), delay); }
+
+    loadWorkflow(defaultWorkflow);
 });
