@@ -100,53 +100,6 @@ h1 {
     border-bottom: 1px solid #34495e;
 }
 
-/* --- Descriptions Section Styles --- */
-.descriptions-container {
-    padding: 30px 50px;
-    background-color: #ffffff;
-    border-top: 1px solid #e0e0e0;
-}
-
-.descriptions-container h2 {
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 30px;
-    font-size: 1.8em;
-    color: #333;
-}
-
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 25px;
-}
-
-.project-card {
-    background-color: #fdfdfd;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 25px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.project-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-}
-
-.project-card h3 {
-    margin-top: 0;
-    color: #2980b9;
-    font-size: 1.2em;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-.project-card p {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #555;
-    margin: 0;
+.hidden {
+    display: none;
 }

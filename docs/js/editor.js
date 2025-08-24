@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    const canvas = document.getElementById('canvas'), world = document.getElementById('world'), paletteNodes = document.querySelectorAll('.palette-node'), exportBtn = document.getElementById('export-btn'), importBtn = document.getElementById('import-btn'), executeBtn = document.getElementById('execute-btn'), propertiesPanel = document.getElementById('properties-panel'), propertiesContent = document.getElementById('properties-content'), nodePropertiesTemplate = document.getElementById('node-properties-template'), logContent = document.getElementById('log-content'), clearLogBtn = document.getElementById('clear-log-btn'), contextMenu = document.getElementById('context-menu'), contextDelete = document.getElementById('context-delete'), tooltip = document.getElementById('tooltip');
+    const canvas = document.getElementById('canvas'),
+        world = document.getElementById('world'),
+        paletteNodes = document.querySelectorAll('.palette-node'),
+        exportBtn = document.getElementById('export-btn'),
+        importBtn = document.getElementById('import-btn'),
+        executeBtn = document.getElementById('execute-btn'),
+        propertiesPanel = document.getElementById('properties-panel'),
+        propertiesContent = document.getElementById('properties-content'),
+        nodePropertiesTemplate = document.getElementById('node-properties-template'),
+        logContent = document.getElementById('log-content'),
+        clearLogBtn = document.getElementById('clear-log-btn'),
+        contextMenu = document.getElementById('context-menu'),
+        contextDelete = document.getElementById('context-delete'),
+        tooltip = document.getElementById('tooltip');
 
     // --- Descriptions Store ---
     const descriptions = {
@@ -51,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     paletteNodes.forEach(node => {
         node.addEventListener('dragstart', handlePaletteDragStart);
-        node.addEventListener('mouseover', showTooltip);
-        node.addEventListener('mouseout', hideTooltip);
+        node.addEventListener('mouseenter', showTooltip);
+        node.addEventListener('mouseleave', hideTooltip);
         node.addEventListener('mousemove', moveTooltip);
     });
     canvas.addEventListener('dragover', e => e.preventDefault());
@@ -74,8 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     executeBtn.addEventListener('click', simulateExecution);
     clearLogBtn.addEventListener('click', () => { logContent.innerHTML = ''; });
     contextDelete.addEventListener('click', deleteContextTarget);
-
-    updateWorldTransform();
 
     // --- Tooltip Handlers ---
     function showTooltip(event) {
@@ -111,7 +122,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleContextMenu(event) { event.preventDefault(); const targetNode = event.target.closest('.workflow-node'); if (targetNode) { contextTarget = targetNode; contextMenu.style.top = `${event.clientY}px`; contextMenu.style.left = `${event.clientX}px`; contextMenu.classList.remove('hidden'); } }
     function hideContextMenu() { contextMenu.classList.add('hidden'); contextTarget = null; }
     function deleteContextTarget() { if (contextTarget) { deleteNode(contextTarget.id); } hideContextMenu(); }
-    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title}) { const newNode = document.createElement('div'); if (id === undefined) { newNode.id = `node-${nodeIdCounter++}`; newNode.style.left = `${Math.round((worldX - 75) / 20) * 20}px`; newNode.style.top = `${Math.round((worldY - 25) / 20) * 20}px`; } else { newNode.id = id; nodeIdCounter = Math.max(nodeIdCounter, parseInt(id.split('-')[1]) + 1); newNode.style.left = left; newNode.style.top = top; } newNode.className = `workflow-node ${type}`; newNode.innerHTML = `<h3>${title || type}</h3>`; newNode.setAttribute('draggable', 'true'); ['input', 'output'].forEach(portType => { const port = document.createElement('div'); port.className = `connection-port ${portType}`; newNode.appendChild(port); }); world.appendChild(newNode); }
+    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title}) { 
+        const newNode = document.createElement('div'); 
+        if (id === undefined) { 
+            newNode.id = `node-${nodeIdCounter++}`; 
+            newNode.style.left = `${Math.round((worldX - 75) / 20) * 20}px`; 
+            newNode.style.top = `${Math.round((worldY - 25) / 20) * 20}px`; 
+        } else { 
+            newNode.id = id; 
+            nodeIdCounter = Math.max(nodeIdCounter, parseInt(id.split('-')[1]) + 1); 
+            newNode.style.left = left; 
+            newNode.style.top = top; 
+        } 
+        newNode.className = `workflow-node ${type}`; 
+        newNode.innerHTML = `<h3>${title || type}</h3>`; 
+        newNode.setAttribute('draggable', 'true'); 
+        ['input', 'output'].forEach(portType => { 
+            const port = document.createElement('div'); 
+            port.className = `connection-port ${portType}`; 
+            newNode.appendChild(port); 
+        }); 
+
+        // Add tooltip event listeners
+        newNode.addEventListener('mouseenter', showTooltip);
+        newNode.addEventListener('mouseleave', hideTooltip);
+        newNode.addEventListener('mousemove', moveTooltip);
+        newNode.dataset.nodeType = type;
+
+        world.appendChild(newNode); 
+    }
     function selectElement(element) { if (selectedElement) selectedElement.classList.remove('selected'); selectedElement = element; if (selectedElement) { selectedElement.classList.add('selected'); } updatePropertiesPanel(); }
     function deleteNode(nodeId) { const node = document.getElementById(nodeId); if (node) node.remove(); const conns = connections.filter(c => c.from === nodeId || c.to === nodeId); conns.forEach(c => deleteConnection(c.id)); }
     function deleteConnection(connId) { const connEl = document.getElementById(connId); if (connEl) connEl.remove(); connections = connections.filter(c => c.id !== connId); }
@@ -164,5 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function addLogMessage(level, message) { const e = document.createElement('div'); const t = new Date().toLocaleTimeString(); e.innerHTML = `[${t}] [${level}] ${message}`; logContent.appendChild(e); logContent.scrollTop = logContent.scrollHeight; }
     function simulateExecution() { logContent.innerHTML = ''; addLogMessage('INFO', 'Starting workflow execution simulation...'); const nodes = Array.from(document.querySelectorAll('.workflow-node')); if (nodes.length === 0) { addLogMessage('WARN', 'Workflow is empty. Nothing to execute.'); return; } addLogMessage('INFO', `Publishing workflow with ${nodes.length} nodes and ${connections.length} connections to quanta_synapse...`); let delay = 1000; setTimeout(() => addLogMessage('INFO', 'Received: quanta_porto acknowledged job.'), delay); nodes.forEach(node => { delay += Math.random() * 1000 + 500; setTimeout(() => addLogMessage('INFO', `Executing node: ${node.querySelector('h3').textContent} (${node.id})`), delay); }); delay += 1500; setTimeout(() => addLogMessage('SUCCESS', 'Workflow simulation finished successfully.'), delay); }
 
+    updateWorldTransform();
     loadWorkflow(defaultWorkflow);
 });
