@@ -203,6 +203,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function addLogMessage(level, message) { const e = document.createElement('div'); const t = new Date().toLocaleTimeString(); e.innerHTML = `[${t}] [${level}] ${message}`; logContent.appendChild(e); logContent.scrollTop = logContent.scrollHeight; }
     function simulateExecution() { logContent.innerHTML = ''; addLogMessage('INFO', 'Starting workflow execution simulation...'); const nodes = Array.from(document.querySelectorAll('.workflow-node')); if (nodes.length === 0) { addLogMessage('WARN', 'Workflow is empty. Nothing to execute.'); return; } addLogMessage('INFO', `Publishing workflow with ${nodes.length} nodes and ${connections.length} connections to quanta_synapse...`); let delay = 1000; setTimeout(() => addLogMessage('INFO', 'Received: quanta_porto acknowledged job.'), delay); nodes.forEach(node => { delay += Math.random() * 1000 + 500; setTimeout(() => addLogMessage('INFO', `Executing node: ${node.querySelector('h3').textContent} (${node.id})`), delay); }); delay += 1500; setTimeout(() => addLogMessage('SUCCESS', 'Workflow simulation finished successfully.'), delay); }
 
-    updateWorldTransform();
-    loadWorkflow(defaultWorkflow);
+    const myNewGraph = {
+        nodes: [
+            { id: 'new-node-1', type: 'quanta_porto', left: '100px', top: '100px', title: 'My New Node' },
+            { id: 'new-node-2', type: 'quanta_synapse', left: '400px', top: '250px', title: 'Another Node' }
+        ],
+        connections: [
+            { id: 'conn-new-node-1-new-node-2', from: 'new-node-1', to: 'new-node-2' }
+        ]
+    };
+
+    loadWorkflow(myNewGraph);
 });

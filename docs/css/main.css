@@ -50,6 +50,8 @@ h1 {
     display: flex;
     flex-grow: 1;
     overflow: hidden; /* Prevent body scroll */
+    height: 0; /* Fix for flex-grow in some Firefox versions */
+    flex-basis: auto;
 }
 
 /* --- Log Panel Styles --- */
