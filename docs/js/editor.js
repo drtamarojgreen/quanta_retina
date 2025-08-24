@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCanvasDrop(event) { event.preventDefault(); const worldPos = screenToWorld(event.clientX, event.clientY); if (draggedElement) { const offsetX = parseFloat(draggedElement.dataset.dragOffsetX || 0); const offsetY = parseFloat(draggedElement.dataset.dragOffsetY || 0); draggedElement.style.left = `${Math.round((worldPos.x - offsetX) / 20) * 20}px`; draggedElement.style.top = `${Math.round((worldPos.y - offsetY) / 20) * 20}px`; updateConnectionsForNode(draggedElement.id); } else { const nodeType = event.dataTransfer.getData('text/plain'); if (nodeType) createNodeOnCanvas({ type: nodeType, worldX: worldPos.x, worldY: worldPos.y }); } }
     function handleCanvasDragStart(event) { const node = event.target.closest('.workflow-node'); if (node) { draggedElement = node; const worldPos = screenToWorld(event.clientX, event.clientY); const nodeX = parseFloat(draggedElement.style.left); const nodeY = parseFloat(draggedElement.style.top); draggedElement.dataset.dragOffsetX = worldPos.x - nodeX; draggedElement.dataset.dragOffsetY = worldPos.y - nodeY; setTimeout(() => { if (draggedElement) draggedElement.classList.add('dragging') }, 0); } }
     function handleCanvasDragEnd() { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; } }
-    function handleCanvasMouseDown(event) { hideContextMenu(); if (event.target.classList.contains('connection-port')) { isDrawingConnection = true; connectionStartPort = event.target; canvas.style.cursor = 'crosshair'; previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path'); previewPath.setAttribute('stroke-dasharray', '5,5'); previewPath.setAttribute('marker-end', 'url(#arrowhead)'); svgLayer.appendChild(previewPath); } else if (isSpacebarDown && event.buttons === 1) { isPanning = true; panStart.x = event.clientX; panStart.y = event.clientY; canvas.classList.add('panning'); } }
+    function handleCanvasMouseDown(event) { hideContextMenu(); if (event.target.classList.contains('connection-port')) { isDrawingConnection = true; connectionStartPort = event.target; canvas.style.cursor = 'crosshair'; previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path'); previewPath.setAttribute('stroke-dasharray', '5,5'); previewPath.setAttribute('marker-end', 'url(#arrowhead)'); svgLayer.appendChild(previewPath); } else if (event.buttons === 1 && (isSpacebarDown || !event.target.closest('.workflow-node'))) { isPanning = true; panStart.x = event.clientX; panStart.y = event.clientY; canvas.classList.add('panning'); } }
     function handleCanvasMouseMove(event) { const worldPos = screenToWorld(event.clientX, event.clientY); if (isDrawingConnection) { const startPos = getPortCenter(connectionStartPort); previewPath.setAttribute('d', `M${startPos.x},${startPos.y} C${startPos.x + 50},${startPos.y} ${worldPos.x - 50},${worldPos.y} ${worldPos.x},${worldPos.y}`); } else if (isPanning) { const dx = event.clientX - panStart.x; const dy = event.clientY - panStart.y; view.x += dx; view.y += dy; panStart.x = event.clientX; panStart.y = event.clientY; updateWorldTransform(); } }
     function handleCanvasMouseLeave() { isPanning = false; canvas.classList.remove('panning'); }
     function handleCanvasMouseUp(event) { if (isDrawingConnection) { const endPort = event.target; if (endPort.classList.contains('connection-port') && endPort.parentElement.id !== connectionStartPort.parentElement.id) { const conn = { id: `conn-${connectionStartPort.parentElement.id}-${endPort.parentElement.id}`, from: connectionStartPort.parentElement.id, to: endPort.parentElement.id }; connections.push(conn); const path = previewPath; path.id = conn.id; path.removeAttribute('stroke-dasharray'); updateConnectionPath(path, connectionStartPort, endPort); path.addEventListener('click', (e) => { e.stopPropagation(); selectElement(path); }); } else { previewPath.remove(); } isDrawingConnection = false; previewPath = null; canvas.style.cursor = 'default'; } if (isPanning) { isPanning = false; canvas.classList.remove('panning'); } }
@@ -155,7 +155,42 @@ document.addEventListener('DOMContentLoaded', () => {
     function deleteNode(nodeId) { const node = document.getElementById(nodeId); if (node) node.remove(); const conns = connections.filter(c => c.from === nodeId || c.to === nodeId); conns.forEach(c => deleteConnection(c.id)); }
     function deleteConnection(connId) { const connEl = document.getElementById(connId); if (connEl) connEl.remove(); connections = connections.filter(c => c.id !== connId); }
     function deleteSelected() { if (selectedElement) { if (selectedElement.tagName === 'path') { deleteConnection(selectedElement.id); } else if (selectedElement.classList.contains('workflow-node')) { deleteNode(selectedElement.id); } selectElement(null); } }
-    function updatePropertiesPanel() { propertiesContent.innerHTML = ''; if (selectedElement && selectedElement.classList.contains('workflow-node')) { propertiesPanel.classList.remove('hidden'); const template = nodePropertiesTemplate.content.cloneNode(true); const titleInput = template.getElementById('prop-title'); titleInput.value = selectedElement.querySelector('h3').textContent; titleInput.addEventListener('input', (e) => { selectedElement.querySelector('h3').textContent = e.target.value; }); propertiesContent.appendChild(template); } else { propertiesPanel.classList.add('hidden'); propertiesContent.innerHTML = '<p class="no-selection">Select a node to edit its properties.</p>'; } }
+    function updatePropertiesPanel() {
+        propertiesContent.innerHTML = '';
+        if (selectedElement && selectedElement.classList.contains('workflow-node')) {
+            propertiesPanel.classList.remove('hidden');
+            const template = nodePropertiesTemplate.content.cloneNode(true);
+            const titleInput = template.getElementById('prop-title');
+            titleInput.value = selectedElement.querySelector('h3').textContent;
+            titleInput.addEventListener('input', (e) => {
+                selectedElement.querySelector('h3').textContent = e.target.value;
+            });
+            propertiesContent.appendChild(template);
+
+            const nodeType = selectedElement.dataset.nodeType;
+            const description = descriptions[nodeType];
+
+            if (description) {
+                const descContainer = document.createElement('div');
+                descContainer.className = 'property';
+
+                const descLabel = document.createElement('label');
+                descLabel.textContent = 'Description';
+
+                const descText = document.createElement('p');
+                descText.textContent = description;
+                descText.className = 'property-description';
+
+                descContainer.appendChild(descLabel);
+                descContainer.appendChild(descText);
+                propertiesContent.appendChild(descContainer);
+            }
+
+        } else {
+            propertiesPanel.classList.add('hidden');
+            propertiesContent.innerHTML = '<p class="no-selection">Select a node to edit its properties.</p>';
+        }
+    }
     function updateWorldTransform() { world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`; }
     function screenToWorld(screenX, screenY) { const r = canvas.getBoundingClientRect(); return { x: (screenX - r.left - view.x) / view.scale, y: (screenY - r.top - view.y) / view.scale }; }
     function getPortCenter(port) { const node = port.parentElement; const nodeX = parseFloat(node.style.left); const nodeY = parseFloat(node.style.top); const portX = port.offsetLeft + port.offsetWidth / 2; const portY = port.offsetTop + port.offsetHeight / 2; return { x: nodeX + portX, y: nodeY + portY }; }

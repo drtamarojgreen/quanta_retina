@@ -204,6 +204,15 @@
     white-space: nowrap;
 }
 
+.property-description {
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 13px;
+    color: #333;
+    padding-top: 5px;
+    margin: 0;
+}
+
 /* --- Context Menu Styles --- */
 .context-menu {
     position: absolute;
@@ -249,7 +258,6 @@
     font-size: 13px;
     line-height: 1.5;
     pointer-events: none; /* Prevent tooltip from interfering with mouse events */
-    opacity: 0;
     transition: opacity 0.2s ease-in-out;
     white-space: normal;
 }
