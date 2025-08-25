@@ -48,6 +48,9 @@ public:
     void clearCanvas();
     void renderToConsole();
 
+    // Getter for testing purposes
+    const Graph& getGraph() const { return graph; }
+
 private:
     Graph graph;
 
