@@ -31,8 +31,8 @@
 }
 
 .palette-node:hover {
-    background-color: #f0f8ff;
-    border-color: #5a9bd5;
+    background-color: #e6e6fa; /* Lavender */
+    border-color: #8A2BE2; /* BlueViolet */
 }
 
 /* Canvas styles */
@@ -62,7 +62,7 @@
 .workflow-node {
     position: absolute;
     background-color: white;
-    border: 1px solid #5a9bd5; /* Darker Purple */
+    border: 1px solid #8A2BE2; /* BlueViolet */
     border-radius: 5px;
     padding: 15px;
     min-width: 150px;
@@ -110,7 +110,7 @@
 }
 
 #svg-layer path {
-    stroke: #5a9bd5;
+    stroke: #8A2BE2; /* BlueViolet */
     stroke-width: 3px;
     fill: none;
 }
@@ -121,7 +121,7 @@
     width: 16px;
     height: 16px;
     background-color: #fff;
-    border: 2px solid #5a9bd5;
+    border: 2px solid #8A2BE2; /* BlueViolet */
     border-radius: 50%;
     cursor: crosshair;
     z-index: 10; /* Ensure ports are on top of the node body */
@@ -242,7 +242,7 @@
 }
 
 .context-menu li:hover {
-    background-color: #5a9bd5;
+    background-color: #8A2BE2; /* BlueViolet */
     color: white;
 }
 
