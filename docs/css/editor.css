@@ -1,7 +1,7 @@
 /* Palette styles */
 .palette {
     width: 240px; /* A bit wider for longer names */
-    background-color: #fdfdfd;
+    background-color: #90ee90; /* Light Green */
     border-right: 1px solid #ddd;
     padding: 15px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -13,6 +13,7 @@
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
+    color: #333; /* Darker text for readability */
 }
 
 .palette-node {
@@ -39,10 +40,10 @@
     flex-grow: 1;
     position: relative; /* Crucial for positioning nodes */
     overflow: hidden; /* We handle overflow manually for panning */
-    background-color: #e9e9e9;
+    background-color: #f0f8ff; /* Lavender */
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
@@ -61,7 +62,7 @@
 .workflow-node {
     position: absolute;
     background-color: white;
-    border: 1px solid #3498db;
+    border: 1px solid #5a9bd5; /* Darker Purple */
     border-radius: 5px;
     padding: 15px;
     min-width: 150px;

@@ -108,7 +108,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Handlers & Core Logic ---
     function handlePaletteDragStart(event) { event.dataTransfer.setData('text/plain', event.target.dataset.nodeType); event.dataTransfer.effectAllowed = 'copy'; }
-    function handleCanvasDrop(event) { event.preventDefault(); const worldPos = screenToWorld(event.clientX, event.clientY); if (draggedElement) { const offsetX = parseFloat(draggedElement.dataset.dragOffsetX || 0); const offsetY = parseFloat(draggedElement.dataset.dragOffsetY || 0); draggedElement.style.left = `${Math.round((worldPos.x - offsetX) / 20) * 20}px`; draggedElement.style.top = `${Math.round((worldPos.y - offsetY) / 20) * 20}px`; updateConnectionsForNode(draggedElement.id); } else { const nodeType = event.dataTransfer.getData('text/plain'); if (nodeType) createNodeOnCanvas({ type: nodeType, worldX: worldPos.x, worldY: worldPos.y }); } }
+    function handleCanvasDrop(event) {
+        event.preventDefault();
+        const worldPos = screenToWorld(event.clientX, event.clientY);
+        if (draggedElement) {
+            const offsetX = parseFloat(draggedElement.dataset.dragOffsetX || 0);
+            const offsetY = parseFloat(draggedElement.dataset.dragOffsetY || 0);
+            draggedElement.style.left = `${Math.round((worldPos.x - offsetX) / 20) * 20}px`;
+            draggedElement.style.top = `${Math.round((worldPos.y - offsetY) / 20) * 20}px`;
+            // Add a small delay to ensure the DOM is updated before redrawing the connections
+            setTimeout(() => updateConnectionsForNode(draggedElement.id), 0);
+        } else {
+            const nodeType = event.dataTransfer.getData('text/plain');
+            if (nodeType) {
+                createNodeOnCanvas({ type: nodeType, worldX: worldPos.x, worldY: worldPos.y });
+            }
+        }
+    }
     function handleCanvasDragStart(event) { const node = event.target.closest('.workflow-node'); if (node) { draggedElement = node; const worldPos = screenToWorld(event.clientX, event.clientY); const nodeX = parseFloat(draggedElement.style.left); const nodeY = parseFloat(draggedElement.style.top); draggedElement.dataset.dragOffsetX = worldPos.x - nodeX; draggedElement.dataset.dragOffsetY = worldPos.y - nodeY; setTimeout(() => { if (draggedElement) draggedElement.classList.add('dragging') }, 0); } }
     function handleCanvasDragEnd() { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; } }
     function handleCanvasMouseDown(event) { hideContextMenu(); if (event.target.classList.contains('connection-port')) { isDrawingConnection = true; connectionStartPort = event.target; canvas.style.cursor = 'crosshair'; previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path'); previewPath.setAttribute('stroke-dasharray', '5,5'); previewPath.setAttribute('marker-end', 'url(#arrowhead)'); svgLayer.appendChild(previewPath); } else if (event.buttons === 1 && (isSpacebarDown || !event.target.closest('.workflow-node'))) { isPanning = true; panStart.x = event.clientX; panStart.y = event.clientY; canvas.classList.add('panning'); } }
@@ -122,26 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleContextMenu(event) { event.preventDefault(); const targetNode = event.target.closest('.workflow-node'); if (targetNode) { contextTarget = targetNode; contextMenu.style.top = `${event.clientY}px`; contextMenu.style.left = `${event.clientX}px`; contextMenu.classList.remove('hidden'); } }
     function hideContextMenu() { contextMenu.classList.add('hidden'); contextTarget = null; }
     function deleteContextTarget() { if (contextTarget) { deleteNode(contextTarget.id); } hideContextMenu(); }
-    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title}) { 
-        const newNode = document.createElement('div'); 
-        if (id === undefined) { 
-            newNode.id = `node-${nodeIdCounter++}`; 
-            newNode.style.left = `${Math.round((worldX - 75) / 20) * 20}px`; 
-            newNode.style.top = `${Math.round((worldY - 25) / 20) * 20}px`; 
-        } else { 
-            newNode.id = id; 
-            nodeIdCounter = Math.max(nodeIdCounter, parseInt(id.split('-')[1]) + 1); 
-            newNode.style.left = left; 
-            newNode.style.top = top; 
-        } 
-        newNode.className = `workflow-node ${type}`; 
-        newNode.innerHTML = `<h3>${title || type}</h3>`; 
-        newNode.setAttribute('draggable', 'true'); 
-        ['input', 'output'].forEach(portType => { 
-            const port = document.createElement('div'); 
-            port.className = `connection-port ${portType}`; 
-            newNode.appendChild(port); 
-        }); 
+    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title}) {
+        const newNode = document.createElement('div');
+        if (id === undefined) {
+            newNode.id = `node-${nodeIdCounter++}`;
+            newNode.style.left = `${Math.round((worldX - 75) / 20) * 20}px`;
+            newNode.style.top = `${Math.round((worldY - 25) / 20) * 20}px`;
+        } else {
+            newNode.id = id;
+            const numericId = parseInt(id.replace(/[^0-9]/g, ''), 10);
+            if (!isNaN(numericId)) {
+                nodeIdCounter = Math.max(nodeIdCounter, numericId + 1);
+            }
+            newNode.style.left = left;
+            newNode.style.top = top;
+        }
+        newNode.className = `workflow-node ${type}`;
+        newNode.innerHTML = `<h3>${title || type}</h3>`;
+        newNode.setAttribute('draggable', 'true');
+        ['input', 'output'].forEach(portType => {
+            const port = document.createElement('div');
+            port.className = `connection-port ${portType}`;
+            newNode.appendChild(port);
+        });
 
         // Add tooltip event listeners
         newNode.addEventListener('mouseenter', showTooltip);
@@ -149,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newNode.addEventListener('mousemove', moveTooltip);
         newNode.dataset.nodeType = type;
 
-        world.appendChild(newNode); 
+        world.appendChild(newNode);
     }
     function selectElement(element) { if (selectedElement) selectedElement.classList.remove('selected'); selectedElement = element; if (selectedElement) { selectedElement.classList.add('selected'); } updatePropertiesPanel(); }
     function deleteNode(nodeId) { const node = document.getElementById(nodeId); if (node) node.remove(); const conns = connections.filter(c => c.from === nodeId || c.to === nodeId); conns.forEach(c => deleteConnection(c.id)); }
