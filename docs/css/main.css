@@ -10,7 +10,7 @@ body {
 }
 
 header {
-    background-color: #333;
+    background-color: #2c3e50;
     color: white;
     padding: 10px 20px;
     display: flex;
@@ -22,7 +22,7 @@ header {
     padding: 8px 16px;
     font-size: 14px;
     margin-left: 10px;
-    background-color: #5a9bd5;
+    background-color: #8A2BE2; /* BlueViolet */
     color: white;
     border: none;
     border-radius: 4px;
@@ -30,7 +30,7 @@ header {
 }
 
 .controls button:hover {
-    background-color: #4a8ac5;
+    background-color: #9932CC; /* DarkOrchid */
 }
 
 .controls button.execute {

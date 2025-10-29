@@ -1,7 +1,7 @@
 /* Palette styles */
 .palette {
     width: 240px; /* A bit wider for longer names */
-    background-color: #fdfdfd;
+    background-color: #90ee90; /* Light Green */
     border-right: 1px solid #ddd;
     padding: 15px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
@@ -13,6 +13,7 @@
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
+    color: #333; /* Darker text for readability */
 }
 
 .palette-node {
@@ -30,8 +31,8 @@
 }
 
 .palette-node:hover {
-    background-color: #f0f8ff;
-    border-color: #5a9bd5;
+    background-color: #e6e6fa; /* Lavender */
+    border-color: #8A2BE2; /* BlueViolet */
 }
 
 /* Canvas styles */
@@ -39,10 +40,10 @@
     flex-grow: 1;
     position: relative; /* Crucial for positioning nodes */
     overflow: hidden; /* We handle overflow manually for panning */
-    background-color: #e9e9e9;
+    background-color: #f0f8ff; /* Lavender */
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
@@ -61,7 +62,7 @@
 .workflow-node {
     position: absolute;
     background-color: white;
-    border: 1px solid #3498db;
+    border: 1px solid #8A2BE2; /* BlueViolet */
     border-radius: 5px;
     padding: 15px;
     min-width: 150px;
@@ -109,7 +110,7 @@
 }
 
 #svg-layer path {
-    stroke: #5a9bd5;
+    stroke: #8A2BE2; /* BlueViolet */
     stroke-width: 3px;
     fill: none;
 }
@@ -120,7 +121,7 @@
     width: 16px;
     height: 16px;
     background-color: #fff;
-    border: 2px solid #5a9bd5;
+    border: 2px solid #8A2BE2; /* BlueViolet */
     border-radius: 50%;
     cursor: crosshair;
     z-index: 10; /* Ensure ports are on top of the node body */
@@ -241,7 +242,7 @@
 }
 
 .context-menu li:hover {
-    background-color: #5a9bd5;
+    background-color: #8A2BE2; /* BlueViolet */
     color: white;
 }
 
@@ -264,4 +265,27 @@
 
 .tooltip.hidden {
     display: none;
+}
+
+/* --- Edge Type Styles --- */
+.connection-data_flow {
+    stroke: #2ecc71; /* Green */
+}
+
+.connection-resource_sharing {
+    stroke: #f1c40f; /* Yellow */
+    stroke-dasharray: 5, 5;
+}
+
+.connection-review {
+    stroke: #e74c3c; /* Red */
+    stroke-dasharray: 2, 2;
+}
+
+#svg-layer text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    fill: #333;
+    text-anchor: middle;
+    pointer-events: none;
 }
