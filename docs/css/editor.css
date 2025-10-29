@@ -266,3 +266,26 @@
 .tooltip.hidden {
     display: none;
 }
+
+/* --- Edge Type Styles --- */
+.connection-data_flow {
+    stroke: #2ecc71; /* Green */
+}
+
+.connection-resource_sharing {
+    stroke: #f1c40f; /* Yellow */
+    stroke-dasharray: 5, 5;
+}
+
+.connection-review {
+    stroke: #e74c3c; /* Red */
+    stroke-dasharray: 2, 2;
+}
+
+#svg-layer text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    fill: #333;
+    text-anchor: middle;
+    pointer-events: none;
+}

@@ -130,7 +130,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCanvasMouseDown(event) { hideContextMenu(); if (event.target.classList.contains('connection-port')) { isDrawingConnection = true; connectionStartPort = event.target; canvas.style.cursor = 'crosshair'; previewPath = document.createElementNS('http://www.w3.org/2000/svg', 'path'); previewPath.setAttribute('stroke-dasharray', '5,5'); previewPath.setAttribute('marker-end', 'url(#arrowhead)'); svgLayer.appendChild(previewPath); } else if (event.buttons === 1 && (isSpacebarDown || !event.target.closest('.workflow-node'))) { isPanning = true; panStart.x = event.clientX; panStart.y = event.clientY; canvas.classList.add('panning'); } }
     function handleCanvasMouseMove(event) { const worldPos = screenToWorld(event.clientX, event.clientY); if (isDrawingConnection) { const startPos = getPortCenter(connectionStartPort); previewPath.setAttribute('d', `M${startPos.x},${startPos.y} C${startPos.x + 50},${startPos.y} ${worldPos.x - 50},${worldPos.y} ${worldPos.x},${worldPos.y}`); } else if (isPanning) { const dx = event.clientX - panStart.x; const dy = event.clientY - panStart.y; view.x += dx; view.y += dy; panStart.x = event.clientX; panStart.y = event.clientY; updateWorldTransform(); } }
     function handleCanvasMouseLeave() { isPanning = false; canvas.classList.remove('panning'); }
-    function handleCanvasMouseUp(event) { if (isDrawingConnection) { const endPort = event.target; if (endPort.classList.contains('connection-port') && endPort.parentElement.id !== connectionStartPort.parentElement.id) { const conn = { id: `conn-${connectionStartPort.parentElement.id}-${endPort.parentElement.id}`, from: connectionStartPort.parentElement.id, to: endPort.parentElement.id }; connections.push(conn); const path = previewPath; path.id = conn.id; path.removeAttribute('stroke-dasharray'); updateConnectionPath(path, connectionStartPort, endPort); path.addEventListener('click', (e) => { e.stopPropagation(); selectElement(path); }); } else { previewPath.remove(); } isDrawingConnection = false; previewPath = null; canvas.style.cursor = 'default'; } if (isPanning) { isPanning = false; canvas.classList.remove('panning'); } }
+    function handleCanvasMouseUp(event) {
+        if (isDrawingConnection) {
+            const endPort = event.target;
+            if (endPort.classList.contains('connection-port') && endPort.parentElement.id !== connectionStartPort.parentElement.id) {
+                const conn = {
+                    id: `conn-${connectionStartPort.parentElement.id}-${endPort.parentElement.id}`,
+                    from: connectionStartPort.parentElement.id,
+                    to: endPort.parentElement.id,
+                    type: 'data_flow' // Add default type
+                };
+                connections.push(conn);
+                const path = previewPath;
+                path.id = conn.id;
+                path.removeAttribute('stroke-dasharray');
+                updateConnectionPath(path, connectionStartPort, endPort, conn.type);
+                path.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectElement(path);
+                });
+            } else {
+                previewPath.remove();
+            }
+            isDrawingConnection = false;
+            previewPath = null;
+            canvas.style.cursor = 'default';
+        }
+        if (isPanning) {
+            isPanning = false;
+            canvas.classList.remove('panning');
+        }
+    }
     function handleCanvasClick(event) { const clickedNode = event.target.closest('.workflow-node'); if (clickedNode) { selectElement(clickedNode); } else if (event.target.id === 'canvas' || event.target.id === 'world' || event.target.id === 'svg-layer') { selectElement(null); } }
     function handleKeyDown(event) { if (event.key === 'Delete' && selectedElement) { deleteSelected(); } if (event.code === 'Space' && !isSpacebarDown) { isSpacebarDown = true; event.preventDefault(); canvas.style.cursor = 'grab'; } }
     function handleKeyUp(event) { if (event.code === 'Space') { isSpacebarDown = false; canvas.style.cursor = 'default'; } }
@@ -172,54 +202,102 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function selectElement(element) { if (selectedElement) selectedElement.classList.remove('selected'); selectedElement = element; if (selectedElement) { selectedElement.classList.add('selected'); } updatePropertiesPanel(); }
     function deleteNode(nodeId) { const node = document.getElementById(nodeId); if (node) node.remove(); const conns = connections.filter(c => c.from === nodeId || c.to === nodeId); conns.forEach(c => deleteConnection(c.id)); }
-    function deleteConnection(connId) { const connEl = document.getElementById(connId); if (connEl) connEl.remove(); connections = connections.filter(c => c.id !== connId); }
+    function deleteConnection(connId) {
+        const connEl = document.getElementById(connId);
+        if (connEl) connEl.remove();
+        const textEl = document.getElementById(`text-${connId}`);
+        if (textEl) textEl.remove();
+        connections = connections.filter(c => c.id !== connId);
+    }
     function deleteSelected() { if (selectedElement) { if (selectedElement.tagName === 'path') { deleteConnection(selectedElement.id); } else if (selectedElement.classList.contains('workflow-node')) { deleteNode(selectedElement.id); } selectElement(null); } }
     function updatePropertiesPanel() {
         propertiesContent.innerHTML = '';
-        if (selectedElement && selectedElement.classList.contains('workflow-node')) {
+        if (selectedElement) {
             propertiesPanel.classList.remove('hidden');
-            const template = nodePropertiesTemplate.content.cloneNode(true);
-            const titleInput = template.getElementById('prop-title');
-            titleInput.value = selectedElement.querySelector('h3').textContent;
-            titleInput.addEventListener('input', (e) => {
-                selectedElement.querySelector('h3').textContent = e.target.value;
-            });
-            propertiesContent.appendChild(template);
-
-            const nodeType = selectedElement.dataset.nodeType;
-            const description = descriptions[nodeType];
-
-            if (description) {
-                const descContainer = document.createElement('div');
-                descContainer.className = 'property';
-
-                const descLabel = document.createElement('label');
-                descLabel.textContent = 'Description';
-
-                const descText = document.createElement('p');
-                descText.textContent = description;
-                descText.className = 'property-description';
-
-                descContainer.appendChild(descLabel);
-                descContainer.appendChild(descText);
-                propertiesContent.appendChild(descContainer);
+            if (selectedElement.classList.contains('workflow-node')) {
+                const template = nodePropertiesTemplate.content.cloneNode(true);
+                const titleInput = template.getElementById('prop-title');
+                titleInput.value = selectedElement.querySelector('h3').textContent;
+                titleInput.addEventListener('input', (e) => {
+                    selectedElement.querySelector('h3').textContent = e.target.value;
+                });
+                propertiesContent.appendChild(template);
+                const nodeType = selectedElement.dataset.nodeType;
+                const description = descriptions[nodeType];
+                if (description) {
+                    const descContainer = document.createElement('div');
+                    descContainer.className = 'property';
+                    const descLabel = document.createElement('label');
+                    descLabel.textContent = 'Description';
+                    const descText = document.createElement('p');
+                    descText.textContent = description;
+                    descText.className = 'property-description';
+                    descContainer.appendChild(descLabel);
+                    descContainer.appendChild(descText);
+                    propertiesContent.appendChild(descContainer);
+                }
+            } else if (selectedElement.tagName === 'path') {
+                const conn = connections.find(c => c.id === selectedElement.id);
+                if (conn) {
+                    const template = document.getElementById('edge-properties-template').content.cloneNode(true);
+                    const typeSelect = template.getElementById('prop-edge-type');
+                    typeSelect.value = conn.type;
+                    typeSelect.addEventListener('change', (e) => {
+                        conn.type = e.target.value;
+                        const startPort = document.getElementById(conn.from).querySelector('.output');
+                        const endPort = document.getElementById(conn.to).querySelector('.input');
+                        updateConnectionPath(selectedElement, startPort, endPort, conn.type);
+                    });
+                    propertiesContent.appendChild(template);
+                }
             }
-
         } else {
             propertiesPanel.classList.add('hidden');
-            propertiesContent.innerHTML = '<p class="no-selection">Select a node to edit its properties.</p>';
+            propertiesContent.innerHTML = '<p class="no-selection">Select a node or edge to edit its properties.</p>';
         }
     }
     function updateWorldTransform() { world.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`; }
     function screenToWorld(screenX, screenY) { const r = canvas.getBoundingClientRect(); return { x: (screenX - r.left - view.x) / view.scale, y: (screenY - r.top - view.y) / view.scale }; }
     function getPortCenter(port) { const node = port.parentElement; const nodeX = parseFloat(node.style.left); const nodeY = parseFloat(node.style.top); const portX = port.offsetLeft + port.offsetWidth / 2; const portY = port.offsetTop + port.offsetHeight / 2; return { x: nodeX + portX, y: nodeY + portY }; }
-    function updateConnectionPath(path, startPort, endPort) { path.setAttribute('marker-end', 'url(#arrowhead)'); const s = getPortCenter(startPort); const e = getPortCenter(endPort); path.setAttribute('d', `M${s.x},${s.y} C${s.x + 50},${s.y} ${e.x - 50},${e.y} ${e.x},${e.y}`); }
-    function updateConnectionsForNode(nodeId) { connections.forEach(c => { if (c.from === nodeId || c.to === nodeId) { const p = document.getElementById(c.id); if (p) { const s = document.getElementById(c.from).querySelector('.output'); const e = document.getElementById(c.to).querySelector('.input'); updateConnectionPath(p, s, e); } } }); }
+    function updateConnectionPath(path, startPort, endPort, type) {
+        path.setAttribute('marker-end', 'url(#arrowhead)');
+        path.setAttribute('class', `connection-${type}`);
+        const s = getPortCenter(startPort);
+        const e = getPortCenter(endPort);
+        path.setAttribute('d', `M${s.x},${s.y} C${s.x + 50},${s.y} ${e.x - 50},${e.y} ${e.x},${e.y}`);
+
+        let text = document.getElementById(`text-${path.id}`);
+        if (!text) {
+            text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.id = `text-${path.id}`;
+            const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+            textPath.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${path.id}`);
+            textPath.setAttribute('startOffset', '50%');
+            textPath.textContent = type.replace('_', ' ');
+            text.appendChild(textPath);
+            svgLayer.appendChild(text);
+        } else {
+            text.querySelector('textPath').textContent = type.replace('_', ' ');
+        }
+    }
+    function updateConnectionsForNode(nodeId) {
+        connections.forEach(c => {
+            if (c.from === nodeId || c.to === nodeId) {
+                const p = document.getElementById(c.id);
+                if (p) {
+                    const s = document.getElementById(c.from).querySelector('.output');
+                    const e = document.getElementById(c.to).querySelector('.input');
+                    updateConnectionPath(p, s, e, c.type);
+                }
+            }
+        });
+    }
 
     function loadWorkflow(workflow) {
         // Clear existing workflow
         world.querySelectorAll('.workflow-node').forEach(n => n.remove());
         svgLayer.querySelectorAll('path[id^="conn-"]').forEach(p => p.remove());
+        svgLayer.querySelectorAll('text[id^="text-conn-"]').forEach(t => t.remove());
         connections.length = 0;
         nodeIdCounter = 0;
 
@@ -233,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load connections
         if (workflow.connections) {
             workflow.connections.forEach(connData => {
-                const { id, from, to } = connData;
+                const { id, from, to, type } = connData;
                 const fromNode = document.getElementById(from);
                 const toNode = document.getElementById(to);
                 const startPort = fromNode ? fromNode.querySelector('.output') : null;
@@ -244,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     path.id = id;
                     connections.push(connData); // Add to state
                     svgLayer.appendChild(path);
-                    updateConnectionPath(path, startPort, endPort);
+                    updateConnectionPath(path, startPort, endPort, type);
                     path.addEventListener('click', (e) => {
                         e.stopPropagation();
                         selectElement(path);
@@ -263,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'new-node-2', type: 'quanta_synapse', left: '400px', top: '250px', title: 'Another Node' }
         ],
         connections: [
-            { id: 'conn-new-node-1-new-node-2', from: 'new-node-1', to: 'new-node-2' }
+            { id: 'conn-new-node-1-new-node-2', from: 'new-node-1', to: 'new-node-2', type: 'data_flow' }
         ]
     };
 
