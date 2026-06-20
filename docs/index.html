@@ -36,6 +36,17 @@
             <div class="palette-node" draggable="true" data-node-type="quanta_retina">quanta_retina</div>
             <div class="palette-node" draggable="true" data-node-type="quanta_sensa">quanta_sensa</div>
             <div class="palette-node" draggable="true" data-node-type="quanta_serene">quanta_serene</div>
+            <h3>Greenhouse</h3>
+            <div class="palette-node" draggable="true" data-node-type="reactome_layer">Reactome Layer</div>
+            <div class="palette-node" draggable="true" data-node-type="rdf_knowledge_graph">RDF Knowledge Graph</div>
+            <div class="palette-node" draggable="true" data-node-type="sparql_engine">SPARQL Engine</div>
+            <div class="palette-node" draggable="true" data-node-type="ml_pipeline">ML Pipeline</div>
+            <div class="palette-node" draggable="true" data-node-type="tf_analytics">TF Analytics</div>
+            <div class="palette-node" draggable="true" data-node-type="blender_pipeline">Blender Pipeline</div>
+            <div class="palette-node" draggable="true" data-node-type="pathway_viewer">Pathway Viewer</div>
+            <div class="palette-node" draggable="true" data-node-type="custom_3d_engine">Custom 3D Engine</div>
+            <div class="palette-node" draggable="true" data-node-type="brain_connectome">Brain Connectome</div>
+            <div class="palette-node" draggable="true" data-node-type="sorrel_ring">SORREL/SDD Ring</div>
             <h3>Generic</h3>
             <div class="palette-node" draggable="true" data-node-type="text_box">Text Box</div>
             <div class="palette-node" draggable="true" data-node-type="logo">Logo</div>
@@ -73,10 +84,14 @@
         <div class="property">
             <label for="prop-edge-type">Type</label>
             <select id="prop-edge-type" class="property-input">
-                <option value="data_flow">Data Flow</option>
+                <option value="purple_dashed">Knowledge Flow (Purple)</option>
+                <option value="blue_flow">Data Flow (Blue)</option>
+                <option value="green_flow">Validation Flow (Green)</option>
+                <option value="orange_flow">Human Review (Orange)</option>
+                <option value="red_flow">Constraint Gate (Red)</option>
+                <option value="data_flow">Data Flow (Generic)</option>
                 <option value="resource_sharing">Resource Sharing</option>
                 <option value="review">Review</option>
-                <option value="purple_dashed">Purple Dashed</option>
             </select>
         </div>
     </template>

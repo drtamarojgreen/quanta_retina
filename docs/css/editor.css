@@ -1,11 +1,11 @@
 /* Palette styles */
 .palette {
-    width: 240px; /* A bit wider for longer names */
-    background-color: #90ee90; /* Light Green */
+    width: 240px;
+    background-color: #90ee90;
     border-right: 1px solid #ddd;
     padding: 15px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-    overflow-y: auto; /* Add scroll for many components */
+    overflow-y: auto;
 }
 
 .palette h2 {
@@ -13,7 +13,7 @@
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
-    color: #333; /* Darker text for readability */
+    color: #333;
 }
 
 .palette-node {
@@ -24,23 +24,23 @@
     background-color: #fff;
     cursor: grab;
     text-align: left;
-    user-select: none; /* Prevent text selection while dragging */
+    user-select: none;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     transition: background-color 0.2s, border-color 0.2s;
 }
 
 .palette-node:hover {
-    background-color: #e6e6fa; /* Lavender */
-    border-color: #8A2BE2; /* BlueViolet */
+    background-color: #e6e6fa;
+    border-color: #8A2BE2;
 }
 
 /* Canvas styles */
 .canvas {
     flex-grow: 1;
-    position: relative; /* Crucial for positioning nodes */
-    overflow: hidden; /* We handle overflow manually for panning */
-    background-color: #f0f8ff; /* Lavender */
+    position: relative;
+    overflow: hidden;
+    background-color: #f0f8ff;
     background-image:
         linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
@@ -58,37 +58,64 @@
     cursor: grabbing;
 }
 
-/* Styles for nodes placed on the canvas */
+/* --- Workflow Node Base Styles --- */
 .workflow-node {
     position: absolute;
     background-color: white;
-    border: 1px solid #8A2BE2; /* BlueViolet */
+    border: 1px solid #8A2BE2;
     border-radius: 5px;
-    padding: 15px;
-    min-width: 150px;
+    padding: 8px 12px;
+    box-sizing: border-box;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     cursor: move;
     user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
-.workflow-node.input {
-    border-color: #2ecc71; /* Green for input */
+.workflow-node.input  { border-color: #2ecc71; }
+.workflow-node.process { border-color: #f1c40f; }
+.workflow-node.output { border-color: #e74c3c; }
+
+/* Greenhouse Architecture Nodes */
+.workflow-node.reactome_layer,
+.workflow-node.rdf_knowledge_graph,
+.workflow-node.sparql_engine {
+    border-color: #2ecc71;
+    background-color: #f7fff7;
 }
 
-.workflow-node.process {
-    border-color: #f1c40f; /* Yellow for process */
+.workflow-node.ml_pipeline,
+.workflow-node.tf_analytics,
+.workflow-node.blender_pipeline,
+.workflow-node.pathway_viewer,
+.workflow-node.custom_3d_engine {
+    border-color: #0052cc;
+    background-color: #f2f7ff;
 }
 
-.workflow-node.output {
-    border-color: #e74c3c; /* Red for output */
+/* Decorative SVG nodes — transparent, no border, render above canvas grid */
+.workflow-node.brain_connectome,
+.workflow-node.sorrel_ring {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    min-width: auto;
+    z-index: 1;
 }
 
+/* Text boxes */
 .workflow-node.text_box {
     background: none;
     border: none;
     box-shadow: none;
     min-width: auto;
     padding: 5px;
+    z-index: 2;
 }
 
 .workflow-node.text_box .text-content {
@@ -98,7 +125,9 @@
     text-align: center;
 }
 
-.workflow-node.logo, .workflow-node.background {
+/* Logo / background image nodes */
+.workflow-node.logo,
+.workflow-node.background {
     background: none;
     border: none;
     box-shadow: none;
@@ -120,54 +149,7 @@
 .dragging {
     opacity: 0.5;
     border: 2px dashed #333;
-    z-index: 1000; /* Ensure dragging node is on top */
-}
-
-/* --- Connection Logic Styles --- */
-
-/* SVG layer for connections */
-#svg-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Allows clicks to pass through to nodes below */
-    z-index: 0; /* Position behind nodes but above canvas background */
-}
-
-#svg-layer path {
-    stroke: #8A2BE2; /* BlueViolet */
-    stroke-width: 3px;
-    fill: none;
-}
-
-/* Connection Port styles */
-.connection-port {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    background-color: #fff;
-    border: 2px solid #8A2BE2; /* BlueViolet */
-    border-radius: 50%;
-    cursor: crosshair;
-    z-index: 10; /* Ensure ports are on top of the node body */
-}
-
-.connection-port.output {
-    right: -9px; /* Position on the right edge */
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.connection-port.input {
-    left: -9px; /* Position on the left edge */
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.connection-port:hover {
-    background-color: #f1c40f; /* Highlight on hover */
+    z-index: 1000;
 }
 
 /* --- Selection Styles --- */
@@ -176,14 +158,84 @@
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
 }
 
+/* --- SVG Connection Layer --- */
+#svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Base path style — coloured per connection-type class below */
+#svg-layer path {
+    stroke: #8A2BE2;
+    stroke-width: 3px;
+    fill: none;
+    pointer-events: none;
+}
+
 #svg-layer path.selected {
     stroke: #e74c3c;
     stroke-width: 4px;
     stroke-dasharray: 8, 4;
-    pointer-events: auto; /* Make path clickable when selected */
 }
 
-/* --- Properties Panel Styles --- */
+#svg-layer text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    fill: #333;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* --- Connection Port Styles --- */
+.connection-port {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-color: #fff;
+    border: 2px solid #8A2BE2;
+    border-radius: 50%;
+    cursor: crosshair;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+/* Invisible enlarged hit area so the port is easier to click */
+.connection-port::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.connection-port.output {
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-port.input {
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.connection-port:hover {
+    background-color: #f1c40f;
+    box-shadow: 0 0 0 5px rgba(138, 43, 226, 0.2);
+    transform: translateY(-50%) scale(1.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* --- Properties Panel --- */
 .properties-panel {
     width: 250px;
     background-color: #fafafa;
@@ -241,7 +293,7 @@
     margin: 0;
 }
 
-/* --- Context Menu Styles --- */
+/* --- Context Menu --- */
 .context-menu {
     position: absolute;
     background-color: #f9f9f9;
@@ -252,9 +304,7 @@
     padding: 5px 0;
 }
 
-.context-menu.hidden {
-    display: none;
-}
+.context-menu.hidden { display: none; }
 
 .context-menu ul {
     list-style: none;
@@ -269,11 +319,11 @@
 }
 
 .context-menu li:hover {
-    background-color: #8A2BE2; /* BlueViolet */
+    background-color: #8A2BE2;
     color: white;
 }
 
-/* --- Tooltip Styles --- */
+/* --- Tooltip --- */
 .tooltip {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.8);
@@ -281,43 +331,45 @@
     padding: 8px 12px;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    z-index: 3000; /* Highest z-index */
+    z-index: 3000;
     max-width: 300px;
     font-size: 13px;
     line-height: 1.5;
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+    pointer-events: none;
     transition: opacity 0.2s ease-in-out;
     white-space: normal;
 }
 
-.tooltip.hidden {
-    display: none;
-}
+.tooltip.hidden { display: none; }
 
-/* --- Edge Type Styles --- */
-.connection-data_flow {
-    stroke: #2ecc71; /* Green */
-}
-
-.connection-resource_sharing {
-    stroke: #f1c40f; /* Yellow */
-    stroke-dasharray: 5, 5;
-}
-
-.connection-review {
-    stroke: #e74c3c; /* Red */
-    stroke-dasharray: 2, 2;
-}
+/* --- Edge / Connection Type Colours --- */
+.connection-data_flow     { stroke: #2ecc71; }
+.connection-resource_sharing { stroke: #f1c40f; stroke-dasharray: 5, 5; }
+.connection-review        { stroke: #e74c3c; stroke-dasharray: 2, 2; }
 
 .connection-purple_dashed {
-    stroke: #8A2BE2 !important; /* BlueViolet */
+    stroke: #8A2BE2 !important;
     stroke-dasharray: 5, 5;
 }
 
-#svg-layer text {
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    fill: #333;
-    text-anchor: middle;
-    pointer-events: none;
+.connection-blue_flow {
+    stroke: #0052cc !important;
+    stroke-width: 2.5px !important;
+}
+
+.connection-green_flow {
+    stroke: #2ecc71 !important;
+    stroke-dasharray: 4, 4;
+    stroke-width: 2px !important;
+}
+
+.connection-orange_flow {
+    stroke: #ff7f50 !important;
+    stroke-width: 2px !important;
+}
+
+.connection-red_flow {
+    stroke: #e74c3c !important;
+    stroke-dasharray: 2, 2;
+    stroke-width: 2px !important;
 }
