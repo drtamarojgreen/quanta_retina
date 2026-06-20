@@ -1,19 +1,15 @@
-# Sorrel Checkins - QuantaGraph Enhancements
+# Sorrel Checkin Ledger
 
-## Planned Sips
+## Verification Sips: Formalizing Diagram Capabilities
 
-### Sip 1: Support for `text_box` node type
-- **Goal**: Enable borderless, background-less nodes that display only text.
-- **Verification**: Node renders without border/background and title is visible.
+### Sip V1: SDD Facts Formalization
+- **Intent**: Define verified truths about the viewer's supported features and demo workflow structure.
+- **Expected Results**: `facts_defined = 1`, `node_types_recorded = 20`.
 
-### Sip 2: Support for `logo` and `background` node types
-- **Goal**: Enable nodes that render images from a `src` attribute. `background` should have low z-index.
-- **Verification**: Images render correctly within nodes; background image stays behind others.
+### Sip V2: SDD Infrastructure & Execution
+- **Intent**: Construct the card-runner system and verify the diagram's visual components via Playwright.
+- **Expected Results**: `runner_ready = 1`, `cards_executed > 0`, `numeric_evidence_captured = 1`.
 
-### Sip 3: Support for `purple_dashed` connection type
-- **Goal**: Add a new connection style that is purple and dashed.
-- **Verification**: SVG path for connection is purple and dashed.
-
-### Sip 4: Demonstration Workflow Reconstruction
-- **Goal**: Load a default workflow that matches the target screenshot.
-- **Verification**: Application loads with the specified layout on startup.
+### Sip V3: Traceability Completion
+- **Intent**: Update the checkout ledger with runner-produced empirical facts to close the verification loop.
+- **Expected Results**: `checkouts_updated = 1`.

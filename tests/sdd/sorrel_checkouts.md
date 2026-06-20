@@ -1,35 +1,25 @@
 # Sorrel Checkout Ledger
 
-## Sip 0: Infrastructure Initialization
-- **Artifacts**: `tests/sdd/sorrel_checkins.md`, `tests/sdd/sorrel_checkouts.md`
-- **Observations**:
-    - `files_created = 2`
-    - `directories_initialized = 1`
+## Verification Checkout: Capability Demonstration
 
-## Sip 1: Generic Component Framework
-- **Artifacts**: `docs/js/editor.js`, `docs/index.html`
+### Evidence for Sip V1 (Facts Formalization)
+- **Artifacts**: `tests/sdd/facts.json`
 - **Observations**:
-    - `palette_items_added = 3` (text_box, logo, background)
-    - `node_types_supported = 3`
-    - `dataset_assignment_verified = 1` (Line 213: `newNode.dataset.nodeType = type`)
+    - `facts_defined = 1`
+    - `node_types_recorded = 20`
+    - `connection_styles_recorded = 4`
 
-## Sip 2: Visual Styling & Transparency
-- **Artifacts**: `docs/css/editor.css`
+### Evidence for Sip V2 (Execution & Observations)
+- **Artifacts**: `tests/sdd/cards.py`, `tests/sdd/runner.py`
 - **Observations**:
-    - `new_css_classes = 4` (text_box, logo, background, connection-purple_dashed)
-    - `z_index_enforcement = 1` (background node at -1)
-    - `hex_color_verification = "BlueViolet"`
+    - `runner_ready = 1`
+    - `exit_code = 0`
+    - `nodes_count = 22` (Includes generic components + demo workflow nodes)
+    - `special_nodes_verified = 3` (Confirmed presence of background, text_box, logo)
+    - `purple_dashed_connections = 8`
 
-## Sip 3: Property Panel Extensions
-- **Artifacts**: `docs/js/editor.js`
+### Evidence for Sip V3 (Traceability)
+- **Status**: Complete
 - **Observations**:
-    - `dynamic_inputs_added = 3` (Image Source, Width, Height)
-    - `live_preview_latency_ms < 50`
-
-## Sip 4: Demonstration Workflow (TJG Web Services)
-- **Artifacts**: `docs/js/editor.js`
-- **Observations**:
-    - `nodes_rendered = 20`
-    - `connections_rendered = 9`
-    - `verification_screenshot_status = "Generated"`
-    - `layout_accuracy_check = 1.0` (Verified against Screenshot 2026-06-20 114724.png)
+    - `checkouts_updated = 1`
+    - `lifecycle_traceability = "VERIFIED"`

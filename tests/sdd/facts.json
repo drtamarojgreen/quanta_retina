@@ -1,0 +1,38 @@
+{
+  "supported_node_types": [
+    "text_box",
+    "logo",
+    "background",
+    "quanta_porto",
+    "quanta_synapse",
+    "quanta_glia",
+    "quanta_tissu",
+    "quanta_alarma",
+    "quanta_cerebra",
+    "quanta_cogno",
+    "quanta_dorsa",
+    "quanta_ethos",
+    "quanta_lista",
+    "quanta_memora",
+    "quanta_occipita",
+    "quanta_pulsa",
+    "quanta_quilida",
+    "quanta_retina",
+    "quanta_sensa",
+    "quanta_serene"
+  ],
+  "connection_styles": [
+    "data_flow",
+    "resource_sharing",
+    "review",
+    "purple_dashed"
+  ],
+  "demo_workflow": {
+    "node_count": 22,
+    "connection_count": 9
+  },
+  "environment": {
+    "entry_point": "docs/index.html",
+    "os": "linux"
+  }
+}

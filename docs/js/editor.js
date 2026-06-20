@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             newNode.innerHTML = `<div class="text-content">${title || 'Text Box'}</div>`;
         } else if (type === 'logo' || type === 'background') {
             newNode.innerHTML = `<img src="${src || ''}" style="width:100%; height:100%; pointer-events:none; display:block;">`;
+            if (!width) newNode.style.width = '100px';
+            if (!height) newNode.style.height = '100px';
         } else {
             newNode.innerHTML = `<h3>${title || type}</h3>`;
         }
