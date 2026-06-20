@@ -83,6 +83,33 @@
     border-color: #e74c3c; /* Red for output */
 }
 
+.workflow-node.text_box {
+    background: none;
+    border: none;
+    box-shadow: none;
+    min-width: auto;
+    padding: 5px;
+}
+
+.workflow-node.text_box .text-content {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+.workflow-node.logo, .workflow-node.background {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    min-width: auto;
+}
+
+.workflow-node.background {
+    z-index: -1;
+}
+
 .workflow-node h3 {
     margin: 0 0 10px 0;
     padding-bottom: 5px;
@@ -280,6 +307,11 @@
 .connection-review {
     stroke: #e74c3c; /* Red */
     stroke-dasharray: 2, 2;
+}
+
+.connection-purple_dashed {
+    stroke: #8A2BE2 !important; /* BlueViolet */
+    stroke-dasharray: 5, 5;
 }
 
 #svg-layer text {
