@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleContextMenu(event) { event.preventDefault(); const targetNode = event.target.closest('.workflow-node'); if (targetNode) { contextTarget = targetNode; contextMenu.style.top = `${event.clientY}px`; contextMenu.style.left = `${event.clientX}px`; contextMenu.classList.remove('hidden'); } }
     function hideContextMenu() { contextMenu.classList.add('hidden'); contextTarget = null; }
     function deleteContextTarget() { if (contextTarget) { deleteNode(contextTarget.id); } hideContextMenu(); }
-    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title}) {
+    function createNodeOnCanvas({id, type, left, top, worldX, worldY, title, src, width, height}) {
         const newNode = document.createElement('div');
         if (id === undefined) {
             newNode.id = `node-${nodeIdCounter++}`;
@@ -184,13 +184,27 @@ document.addEventListener('DOMContentLoaded', () => {
             newNode.style.top = top;
         }
         newNode.className = `workflow-node ${type}`;
-        newNode.innerHTML = `<h3>${title || type}</h3>`;
+
+        if (type === 'text_box') {
+            newNode.innerHTML = `<div class="text-content">${title || 'Text Box'}</div>`;
+        } else if (type === 'logo' || type === 'background') {
+            newNode.innerHTML = `<img src="${src || ''}" style="width:100%; height:100%; pointer-events:none; display:block;">`;
+        } else {
+            newNode.innerHTML = `<h3>${title || type}</h3>`;
+        }
+
+        if (width) newNode.style.width = width;
+        if (height) newNode.style.height = height;
+
         newNode.setAttribute('draggable', 'true');
-        ['input', 'output'].forEach(portType => {
-            const port = document.createElement('div');
-            port.className = `connection-port ${portType}`;
-            newNode.appendChild(port);
-        });
+
+        if (type !== 'text_box' && type !== 'background') {
+            ['input', 'output'].forEach(portType => {
+                const port = document.createElement('div');
+                port.className = `connection-port ${portType}`;
+                newNode.appendChild(port);
+            });
+        }
 
         // Add tooltip event listeners
         newNode.addEventListener('mouseenter', showTooltip);
@@ -215,14 +229,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedElement) {
             propertiesPanel.classList.remove('hidden');
             if (selectedElement.classList.contains('workflow-node')) {
+                const nodeType = selectedElement.dataset.nodeType;
                 const template = nodePropertiesTemplate.content.cloneNode(true);
                 const titleInput = template.getElementById('prop-title');
-                titleInput.value = selectedElement.querySelector('h3').textContent;
+                const titleElement = selectedElement.querySelector('h3') || selectedElement.querySelector('.text-content');
+                titleInput.value = titleElement ? titleElement.textContent : '';
                 titleInput.addEventListener('input', (e) => {
-                    selectedElement.querySelector('h3').textContent = e.target.value;
+                    if (titleElement) titleElement.textContent = e.target.value;
                 });
                 propertiesContent.appendChild(template);
-                const nodeType = selectedElement.dataset.nodeType;
+
+                if (nodeType === 'logo' || nodeType === 'background') {
+                    const srcDiv = document.createElement('div');
+                    srcDiv.className = 'property';
+                    const img = selectedElement.querySelector('img');
+                    srcDiv.innerHTML = `<label>Image Source</label><input type="text" class="property-input" value="${img ? img.getAttribute('src') : ''}">`;
+                    srcDiv.querySelector('input').addEventListener('input', (e) => {
+                        if (img) img.setAttribute('src', e.target.value);
+                    });
+                    propertiesContent.appendChild(srcDiv);
+                }
+
+                ['width', 'height'].forEach(prop => {
+                    const div = document.createElement('div');
+                    div.className = 'property';
+                    div.innerHTML = `<label>${prop.charAt(0).toUpperCase() + prop.slice(1)}</label><input type="text" class="property-input" value="${selectedElement.style[prop] || ''}">`;
+                    div.querySelector('input').addEventListener('input', (e) => {
+                        selectedElement.style[prop] = e.target.value;
+                        updateConnectionsForNode(selectedElement.id);
+                    });
+                    propertiesContent.appendChild(div);
+                });
+
                 const description = descriptions[nodeType];
                 if (description) {
                     const descContainer = document.createElement('div');
@@ -331,19 +369,83 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-    function exportWorkflow() { const nodes = Array.from(document.querySelectorAll('.workflow-node')).map(n => ({ id: n.id, type: n.classList[1], left: n.style.left, top: n.style.top, title: n.querySelector('h3').textContent })); const workflow = { nodes, connections }; const dataStr = JSON.stringify(workflow, null, 2); const dataBlob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(dataBlob); const a = document.createElement('a'); a.href = url; a.download = 'workflow.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); addLogMessage('SUCCESS', 'Workflow exported to workflow.json'); }
+    function exportWorkflow() {
+        const nodes = Array.from(document.querySelectorAll('.workflow-node')).map(n => {
+            const img = n.querySelector('img');
+            const titleEl = n.querySelector('h3') || n.querySelector('.text-content');
+            return {
+                id: n.id,
+                type: n.dataset.nodeType,
+                left: n.style.left,
+                top: n.style.top,
+                width: n.style.width,
+                height: n.style.height,
+                title: titleEl ? titleEl.textContent : '',
+                src: img ? img.getAttribute('src') : undefined
+            };
+        });
+        const workflow = { nodes, connections };
+        const dataStr = JSON.stringify(workflow, null, 2);
+        const dataBlob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'workflow.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        addLogMessage('SUCCESS', 'Workflow exported to workflow.json');
+    }
     function addLogMessage(level, message) { const e = document.createElement('div'); const t = new Date().toLocaleTimeString(); e.innerHTML = `[${t}] [${level}] ${message}`; logContent.appendChild(e); logContent.scrollTop = logContent.scrollHeight; }
     function simulateExecution() { logContent.innerHTML = ''; addLogMessage('INFO', 'Starting workflow execution simulation...'); const nodes = Array.from(document.querySelectorAll('.workflow-node')); if (nodes.length === 0) { addLogMessage('WARN', 'Workflow is empty. Nothing to execute.'); return; } addLogMessage('INFO', `Publishing workflow with ${nodes.length} nodes and ${connections.length} connections to quanta_synapse...`); let delay = 1000; setTimeout(() => addLogMessage('INFO', 'Received: quanta_porto acknowledged job.'), delay); nodes.forEach(node => { delay += Math.random() * 1000 + 500; setTimeout(() => addLogMessage('INFO', `Executing node: ${node.querySelector('h3').textContent} (${node.id})`), delay); }); delay += 1500; setTimeout(() => addLogMessage('SUCCESS', 'Workflow simulation finished successfully.'), delay); }
 
-    const myNewGraph = {
+    const demoWorkflow = {
         nodes: [
-            { id: 'new-node-1', type: 'quanta_porto', left: '100px', top: '100px', title: 'My New Node' },
-            { id: 'new-node-2', type: 'quanta_synapse', left: '400px', top: '250px', title: 'Another Node' }
+            { id: 'bg-1', type: 'background', left: '0px', top: '200px', width: '1000px', height: '800px', src: 'https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA1L3B4MTM2OTgxMy1pbWFnZS1rd3Z6eHlsdy5qcGc.jpg', title: 'Brain Background' },
+            { id: 'title-1', type: 'text_box', left: '300px', top: '20px', title: 'TJG Web Services, LLC' },
+            { id: 'title-2', type: 'text_box', left: '100px', top: '100px', width: '800px', title: 'TJG Web Services applies AI-driven Sorrel Driven Development to manage web development and develop mental health research tools.' },
+
+            { id: 'label-sdd', type: 'text_box', left: '220px', top: '220px', title: 'Sorrel Driven Development' },
+            { id: 'node-tissu', type: 'quanta_tissu', left: '220px', top: '300px', title: 'Quanta_Tissu' },
+
+            { id: 'label-advocacy', type: 'text_box', left: '50px', top: '320px', width: '120px', title: 'Mental Health Advocacy' },
+            { id: 'node-glia', type: 'quanta_glia', left: '90px', top: '450px', title: 'Quanta_Glia' },
+
+            { id: 'label-research', type: 'text_box', left: '130px', top: '550px', width: '120px', title: 'Mental Health Research' },
+            { id: 'node-memora', type: 'quanta_memora', left: '310px', top: '500px', title: 'Quanta_Memora' },
+
+            { id: 'label-om', type: 'text_box', left: '380px', top: '260px', width: '120px', title: 'Operation and Maintenance' },
+            { id: 'node-porto', type: 'quanta_porto', left: '490px', top: '270px', title: 'Quanta_Porto' },
+
+            { id: 'label-wm', type: 'text_box', left: '500px', top: '380px', width: '120px', title: 'Website Management' },
+            { id: 'node-lllm', type: 'quanta_porto', left: '520px', top: '460px', title: 'localLLM' },
+
+            { id: 'label-cg', type: 'text_box', left: '680px', top: '280px', width: '120px', title: 'Content Generation' },
+            { id: 'node-allm', type: 'quanta_porto', left: '690px', top: '410px', title: 'AgenticLLMs' },
+
+            { id: 'label-vg', type: 'text_box', left: '810px', top: '320px', width: '120px', title: 'Video Generation' },
+            { id: 'label-verification', type: 'text_box', left: '670px', top: '490px', title: 'Verification' },
+
+            { id: 'node-ethos', type: 'quanta_ethos', left: '560px', top: '580px', title: 'Quanta_Ethos' },
+            { id: 'label-rag', type: 'text_box', left: '290px', top: '390px', title: 'RAG' },
+            { id: 'label-tm', type: 'text_box', left: '380px', top: '420px', width: '100px', title: 'Tool Management' },
+
+            { id: 'logo-1', type: 'logo', left: '760px', top: '550px', width: '80px', height: '80px', src: 'https://img.freepik.com/free-vector/greenhouse-logo-template-design_47987-14421.jpg', title: 'Greenhouse Logo' },
+            { id: 'logo-2', type: 'logo', left: '850px', top: '550px', width: '130px', height: '80px', src: 'https://img.freepik.com/free-photo/abstract-blue-background-with-lines_23-2148285514.jpg', title: 'TJG Logo' }
         ],
         connections: [
-            { id: 'conn-new-node-1-new-node-2', from: 'new-node-1', to: 'new-node-2', type: 'data_flow' }
+            { id: 'conn-1', from: 'node-tissu', to: 'node-porto', type: 'purple_dashed' },
+            { id: 'conn-2', from: 'node-tissu', to: 'node-lllm', type: 'data_flow' },
+            { id: 'conn-3', from: 'node-porto', to: 'node-allm', type: 'purple_dashed' },
+            { id: 'conn-4', from: 'node-lllm', to: 'node-allm', type: 'purple_dashed' },
+            { id: 'conn-5', from: 'node-lllm', to: 'node-ethos', type: 'purple_dashed' },
+            { id: 'conn-6', from: 'node-glia', to: 'node-tissu', type: 'purple_dashed' },
+            { id: 'conn-7', from: 'node-glia', to: 'node-memora', type: 'purple_dashed' },
+            { id: 'conn-8', from: 'node-memora', to: 'node-lllm', type: 'purple_dashed' },
+            { id: 'conn-9', from: 'node-memora', to: 'node-ethos', type: 'purple_dashed' }
         ]
     };
 
-    loadWorkflow(myNewGraph);
+    loadWorkflow(demoWorkflow);
 });
