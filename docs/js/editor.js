@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('dragstart', handleCanvasDragStart);
     canvas.addEventListener('dragend', handleCanvasDragEnd);
     canvas.addEventListener('mousedown', handleCanvasMouseDown);
-    canvas.addEventListener('mousemove', handleCanvasMouseMove);
-    canvas.addEventListener('mouseup', handleCanvasMouseUp);
+    window.addEventListener('mousemove', handleCanvasMouseMove);
+    window.addEventListener('mouseup', handleCanvasMouseUp);
     canvas.addEventListener('mouseleave', handleCanvasMouseLeave);
     canvas.addEventListener('click', handleCanvasClick);
     canvas.addEventListener('contextmenu', handleContextMenu);
@@ -206,24 +206,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isDrawingConnection) {
             const endPort = event.target.closest('.connection-port');
             if (endPort && endPort.parentElement.id !== connectionStartPort.parentElement.id) {
-                const conn = {
-                    id: `conn-${connectionStartPort.parentElement.id}-${endPort.parentElement.id}`,
-                    from: connectionStartPort.parentElement.id,
-                    to: endPort.parentElement.id,
-                    type: 'data_flow' // Add default type
-                };
-                connections.push(conn);
-                const path = previewPath;
-                path.id = conn.id;
-                path.removeAttribute('stroke-dasharray');
-                updateConnectionPath(path, connectionStartPort, endPort, conn.type);
-                path.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    selectElement(path);
-                });
-                saveToLocalStorage();
+                const fromId = connectionStartPort.parentElement.id;
+                const toId = endPort.parentElement.id;
+
+                // PR-1: Prevent duplicate connections
+                const existing = connections.find(c => c.from === fromId && c.to === toId);
+                if (existing) {
+                    addLogMessage('WARN', `Connection already exists between ${fromId} and ${toId}`);
+                    if (previewPath) previewPath.remove();
+                } else {
+                    const conn = {
+                        id: `conn-${fromId}-${toId}`,
+                        from: fromId,
+                        to: toId,
+                        type: 'data_flow' // Add default type
+                    };
+                    connections.push(conn);
+                    const path = previewPath;
+                    path.id = conn.id;
+                    path.removeAttribute('stroke-dasharray');
+                    updateConnectionPath(path, connectionStartPort, endPort, conn.type);
+                    path.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectElement(path);
+                    });
+                    saveToLocalStorage();
+                }
             } else {
-                previewPath.remove();
+                // PR-2: Ensure previewPath is removed if no connection is formed
+                if (previewPath) previewPath.remove();
             }
             isDrawingConnection = false;
             previewPath = null;
