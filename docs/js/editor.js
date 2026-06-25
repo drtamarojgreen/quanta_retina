@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const movedId = draggedElement.id;
             requestAnimationFrame(() => {
                 updateConnectionsForNode(movedId);
+                reconcileDOMWithState();
                 saveToLocalStorage();
             });
         } else {
@@ -186,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hideContextMenu();
         const portEl = event.target.closest('.connection-port');
         if (portEl) {
+            event.stopPropagation();
+            if (previewPath) previewPath.remove();
             isDrawingConnection = true;
             connectionStartPort = portEl;
             canvas.style.cursor = 'crosshair';
@@ -239,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isDrawingConnection = false;
             previewPath = null;
             canvas.style.cursor = 'default';
+            reconcileDOMWithState();
         }
         if (isPanning) {
             isPanning = false;
@@ -259,6 +263,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleContextMenu(event) { event.preventDefault(); const targetNode = event.target.closest('.workflow-node'); if (targetNode) { contextTarget = targetNode; contextMenu.style.top = `${event.clientY}px`; contextMenu.style.left = `${event.clientX}px`; contextMenu.classList.remove('hidden'); } }
     function hideContextMenu() { contextMenu.classList.add('hidden'); contextTarget = null; }
     function deleteContextTarget() { if (contextTarget) { deleteNode(contextTarget.id); saveToLocalStorage(); } hideContextMenu(); }
+
+    function reconcileDOMWithState() {
+        const existingIds = new Set(connections.map(c => c.id));
+        if (previewPath && previewPath.id) existingIds.add(previewPath.id);
+
+        // Reconcile paths
+        Array.from(svgLayer.querySelectorAll('path[id^="conn-"]')).forEach(path => {
+            if (!existingIds.has(path.id)) path.remove();
+        });
+
+        // Reconcile labels
+        Array.from(svgLayer.querySelectorAll('text[id^="text-conn-"]')).forEach(text => {
+            const connId = text.id.replace('text-', '');
+            if (!existingIds.has(connId)) text.remove();
+        });
+    }
+
     // --- SVG Node Content Generators ---
     function getBrainSvgHTML() {
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 350" width="100%" height="100%" style="pointer-events:none;display:block;">
@@ -536,8 +557,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadWorkflow(workflow) {
         // Clear existing workflow
         world.querySelectorAll('.workflow-node').forEach(n => n.remove());
-        svgLayer.querySelectorAll('path[id^="conn-"]').forEach(p => p.remove());
-        svgLayer.querySelectorAll('text[id^="text-conn-"]').forEach(t => t.remove());
+        Array.from(svgLayer.children).forEach(child => {
+            if (child.tagName !== 'defs') child.remove();
+        });
         connections.length = 0;
         nodeIdCounter = 0;
 

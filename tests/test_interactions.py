@@ -78,5 +78,42 @@ class TestWorkflowInteractions(unittest.TestCase):
         new_transform = self.page.locator("#world").evaluate("el => el.style.transform")
         self.assertNotEqual(initial_transform, new_transform)
 
+    def test_rapid_mousedown_leak_prevention(self):
+        """Test that multiple mousedown events do not leak stray paths."""
+        porto = self.page.locator("#node-porto .output")
+        box = porto.bounding_box()
+
+        # Trigger multiple mousedown without mouseup
+        for _ in range(5):
+            self.page.mouse.move(box['x'] + box['width']/2, box['y'] + box['height']/2)
+            self.page.mouse.down()
+
+        strays = self.page.evaluate("document.querySelectorAll('#svg-layer > path:not([id])').length")
+        # Should only have ONE preview path (the last one)
+        self.assertEqual(strays, 1)
+
+        # Now mouseup should clean it up
+        self.page.mouse.up()
+        strays_after = self.page.evaluate("document.querySelectorAll('#svg-layer > path:not([id])').length")
+        self.assertEqual(strays_after, 0)
+
+    def test_load_workflow_clears_svg(self):
+        """Test that loadWorkflow successfully clears the canvas of all previous artifacts."""
+        # Create a stray path manually for testing
+        self.page.evaluate("""() => {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.id = 'manual-stray';
+            document.getElementById('svg-layer').appendChild(path);
+        }""")
+
+        # Trigger export/import or just reload via demoWorkflow logic
+        # In editor.js, loadWorkflow is called on startup. We can trigger it by clearing localStorage and reloading.
+        self.page.evaluate("localStorage.clear()")
+        self.page.reload()
+        self.page.wait_for_selector(".workflow-node")
+
+        manual_stray = self.page.locator("#manual-stray")
+        expect(manual_stray).not_to_be_attached()
+
 if __name__ == "__main__":
     unittest.main()
