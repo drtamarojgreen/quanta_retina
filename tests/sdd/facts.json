@@ -25,11 +25,20 @@
     "data_flow",
     "resource_sharing",
     "review",
-    "purple_dashed"
+    "purple_dashed",
+    "blue_flow",
+    "green_flow",
+    "orange_flow",
+    "red_flow"
   ],
   "demo_workflow": {
     "node_count": 22,
-    "connection_count": 9
+    "connection_count": 18
+  },
+  "issues_discovered": {
+    "stray_preview_paths": true,
+    "duplicate_connection_prevention_missing": true,
+    "mouseup_outside_canvas_leak": true
   },
   "environment": {
     "entry_point": "docs/index.html",

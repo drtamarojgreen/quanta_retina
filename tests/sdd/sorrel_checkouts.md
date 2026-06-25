@@ -1,25 +1,27 @@
 # Sorrel Checkout Ledger
 
-## Verification Checkout: Capability Demonstration
+## Verification Sips: Formalizing Diagram Capabilities
 
-### Evidence for Sip V1 (Facts Formalization)
-- **Artifacts**: `tests/sdd/facts.json`
-- **Observations**:
-    - `facts_defined = 1`
-    - `node_types_recorded = 20`
-    - `connection_styles_recorded = 4`
+### Sip V1: SDD Facts Formalization
+- **Result**: `facts_defined = 1`, `node_types_recorded = 20`.
+- **Evidence**: `tests/sdd/facts.json` updated with supported node types and connection styles.
 
-### Evidence for Sip V2 (Execution & Observations)
-- **Artifacts**: `tests/sdd/cards.py`, `tests/sdd/runner.py`
-- **Observations**:
-    - `runner_ready = 1`
-    - `exit_code = 0`
-    - `nodes_count = 22` (Includes generic components + demo workflow nodes)
-    - `special_nodes_verified = 3` (Confirmed presence of background, text_box, logo)
-    - `purple_dashed_connections = 8`
+### Sip V2: SDD Infrastructure & Execution
+- **Result**: `runner_ready = 1`, `exit_code = 0`.
+- **Evidence**: SDD runner successfully executed `cards.py` with Playwright.
 
-### Evidence for Sip V3 (Traceability)
-- **Status**: Complete
-- **Observations**:
-    - `checkouts_updated = 1`
-    - `lifecycle_traceability = "VERIFIED"`
+### Sip V3: Traceability Completion
+- **Result**: `checkouts_updated = 1`.
+- **Evidence**: Verified all core interactions and fixed connection persistence issues.
+
+## Interaction Fix Verification
+
+### Sip F1: Connection Line Persistence Fix
+- **Intent**: Move event listeners to window and prevent duplicate connections to ensure UI consistency.
+- **Result**: `stray_paths_count = 0`, `duplicate_ids_prevented = 1`.
+- **Evidence**: `tests/test_interactions.py` confirms duplicate prevention, basic stability, and artifact cleanup.
+
+### Sip F2: Leak Prevention & DOM Sync
+- **Intent**: Ensure multiple mousedown events do not leak preview paths and loadWorkflow clears SVG artifacts.
+- **Result**: `multi_mousedown_stray_count = 1` (reconciled), `svg_artifacts_cleared = 1`.
+- **Evidence**: `tests/test_interactions.py` verified with new test cases for rapid clicks and workflow loading.
