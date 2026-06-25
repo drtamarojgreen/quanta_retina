@@ -25,5 +25,3 @@
 - **Intent**: Ensure multiple mousedown events do not leak preview paths and loadWorkflow clears SVG artifacts.
 - **Result**: `multi_mousedown_stray_count = 1` (reconciled), `svg_artifacts_cleared = 1`.
 - **Evidence**: `tests/test_interactions.py` verified with new test cases for rapid clicks and workflow loading.
-- **Result**: `stray_paths_count = 0` (manual verification), `duplicate_ids_prevented = 1`.
-- **Evidence**: `tests/test_interactions.py` confirms duplicate prevention and basic stability.

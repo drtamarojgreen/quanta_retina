@@ -115,5 +115,41 @@ class TestWorkflowInteractions(unittest.TestCase):
         manual_stray = self.page.locator("#manual-stray")
         expect(manual_stray).not_to_be_attached()
 
+    def test_handle_does_not_move_node(self):
+        """Test that dragging a port handle does not move the parent node."""
+        node = self.page.locator("#node-porto")
+        handle = node.locator(".output")
+        initial_box = node.bounding_box()
+
+        # Try to drag the handle
+        hbox = handle.bounding_box()
+        self.page.mouse.move(hbox['x'] + hbox['width']/2, hbox['y'] + hbox['height']/2)
+        self.page.mouse.down()
+        self.page.mouse.move(hbox['x'] + 100, hbox['y'] + 100)
+        self.page.mouse.up()
+
+        new_box = node.bounding_box()
+        self.assertEqual(initial_box['x'], new_box['x'])
+        self.assertEqual(initial_box['y'], new_box['y'])
+
+    def test_connection_persistence(self):
+        """Test that a new connection survives a page reload."""
+        out_port = self.page.locator("#node-porto .output")
+        in_port = self.page.locator("#node-allm .input")
+        obox = out_port.bounding_box()
+        ibox = in_port.bounding_box()
+
+        self.page.mouse.move(obox['x'] + obox['width']/2, obox['y'] + obox['height']/2)
+        self.page.mouse.down()
+        self.page.mouse.move(ibox['x'] + ibox['width']/2, ibox['y'] + ibox['height']/2)
+        self.page.mouse.up()
+
+        conn_id = "conn-node-porto-node-allm"
+        expect(self.page.locator(f"#{conn_id}")).to_be_attached()
+
+        self.page.reload()
+        self.page.wait_for_selector(".workflow-node")
+        expect(self.page.locator(f"#{conn_id}")).to_be_attached()
+
 if __name__ == "__main__":
     unittest.main()

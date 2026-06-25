@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('drop', handleCanvasDrop);
     canvas.addEventListener('dragstart', handleCanvasDragStart);
     canvas.addEventListener('dragend', handleCanvasDragEnd);
-    canvas.addEventListener('mousedown', handleCanvasMouseDown);
+    canvas.addEventListener('mousedown', handleCanvasMouseDown, true);
     window.addEventListener('mousemove', handleCanvasMouseMove);
     window.addEventListener('mouseup', handleCanvasMouseUp);
     canvas.addEventListener('mouseleave', handleCanvasMouseLeave);
@@ -163,6 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const worldPos = screenToWorld(event.clientX, event.clientY);
         if (draggedElement) {
+            // Fix: verify that we are actually in a dragging state
+            if (!draggedElement.classList.contains('dragging')) {
+                draggedElement = null;
+                return;
+            }
             const offsetX = parseFloat(draggedElement.dataset.dragOffsetX || 0);
             const offsetY = parseFloat(draggedElement.dataset.dragOffsetY || 0);
             draggedElement.style.left = `${Math.round((worldPos.x - offsetX) / 20) * 20}px`;
@@ -181,12 +186,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    function handleCanvasDragStart(event) { const node = event.target.closest('.workflow-node'); if (node) { draggedElement = node; const worldPos = screenToWorld(event.clientX, event.clientY); const nodeX = parseFloat(draggedElement.style.left); const nodeY = parseFloat(draggedElement.style.top); draggedElement.dataset.dragOffsetX = worldPos.x - nodeX; draggedElement.dataset.dragOffsetY = worldPos.y - nodeY; setTimeout(() => { if (draggedElement) draggedElement.classList.add('dragging') }, 0); } }
+    function handleCanvasDragStart(event) {
+        const port = event.target.closest('.connection-port');
+        if (port) {
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+        }
+        const node = event.target.closest('.workflow-node');
+        if (node) {
+            draggedElement = node;
+            const worldPos = screenToWorld(event.clientX, event.clientY);
+            const nodeX = parseFloat(draggedElement.style.left);
+            const nodeY = parseFloat(draggedElement.style.top);
+            draggedElement.dataset.dragOffsetX = worldPos.x - nodeX;
+            draggedElement.dataset.dragOffsetY = worldPos.y - nodeY;
+            setTimeout(() => { if (draggedElement) draggedElement.classList.add('dragging') }, 0);
+        }
+    }
     function handleCanvasDragEnd() { if (draggedElement) { draggedElement.classList.remove('dragging'); draggedElement = null; } }
     function handleCanvasMouseDown(event) {
         hideContextMenu();
         const portEl = event.target.closest('.connection-port');
         if (portEl) {
+            event.preventDefault();
             event.stopPropagation();
             if (previewPath) previewPath.remove();
             isDrawingConnection = true;
@@ -413,6 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ['input', 'output'].forEach(portType => {
                 const port = document.createElement('div');
                 port.className = `connection-port ${portType}`;
+                port.setAttribute('draggable', 'false');
+                port.addEventListener('dragstart', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
                 newNode.appendChild(port);
             });
         }
@@ -437,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const textEl = document.getElementById(`text-${connId}`);
         if (textEl) textEl.remove();
         connections = connections.filter(c => c.id !== connId);
+        saveToLocalStorage();
     }
     function deleteSelected() { if (selectedElement) { if (selectedElement.tagName === 'path') { deleteConnection(selectedElement.id); } else if (selectedElement.classList.contains('workflow-node')) { deleteNode(selectedElement.id); } selectElement(null); saveToLocalStorage(); } }
     function updatePropertiesPanel() {
