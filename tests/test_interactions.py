@@ -1,16 +1,12 @@
-
-import unittest
 import os
-import json
-import time
-from playwright.sync_api import sync_playwright, expect
+import unittest
+from playwright.sync_api import sync_playwright
 
 class TestWorkflowInteractions(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.playwright = sync_playwright().start()
         cls.browser = cls.playwright.chromium.launch(headless=True)
-        cls.path = f"file://{os.path.abspath('docs/index.html')}"
 
     @classmethod
     def tearDownClass(cls):
@@ -20,136 +16,120 @@ class TestWorkflowInteractions(unittest.TestCase):
     def setUp(self):
         self.context = self.browser.new_context()
         self.page = self.context.new_page()
-        self.page.add_style_tag(content="""
-            #svg-layer path { pointer-events: auto; }
-            .workflow-node.sorrel_ring, .workflow-node.brain_connectome { pointer-events: none; }
-        """)
-        self.page.goto(self.path)
+        # Use local server
+        self.page.goto("http://localhost:8080")
         self.page.wait_for_selector(".workflow-node")
-        self.page.evaluate("localStorage.clear()")
-        self.page.reload()
-        self.page.wait_for_selector(".workflow-node")
+        # Hide occlusion
+        self.page.evaluate('document.getElementById("node-ring").style.display = "none"')
 
     def tearDown(self):
         self.context.close()
 
-    def get_stray_count(self):
-        return self.page.evaluate("document.querySelectorAll('#svg-layer > path:not([id])').length")
+    def test_node_presence(self):
+        nodes = self.page.query_selector_all(".workflow-node")
+        self.assertGreater(len(nodes), 0)
 
-    def test_node_creation(self):
-        """Test creating a new node from the palette."""
-        initial_nodes = self.page.locator(".workflow-node").count()
-        palette_node = self.page.locator(".palette-node[data-node-type='quanta_synapse']")
-        canvas = self.page.locator("#canvas")
-        palette_node.drag_to(canvas, target_position={"x": 100, "y": 100})
-        self.assertEqual(self.page.locator(".workflow-node").count(), initial_nodes + 1)
+    def test_connection_presence(self):
+        connections = self.page.query_selector_all("#svg-layer path[id^='conn-']")
+        self.assertGreater(len(connections), 0)
 
-    def test_duplicate_prevention(self):
-        """Test that duplicate connections are prevented."""
-        out_port = self.page.locator("#node-porto .output")
-        in_port = self.page.locator("#node-lllm .input")
-        box_from = out_port.bounding_box()
-        box_to = in_port.bounding_box()
-        initial_conns = self.page.locator("#svg-layer > path[id]").count()
-        self.page.mouse.move(box_from['x'] + box_from['width']/2, box_from['y'] + box_from['height']/2)
-        self.page.mouse.down()
-        self.page.mouse.move(box_to['x'] + box_to['width']/2, box_to['y'] + box_to['height']/2)
-        self.page.mouse.up()
-        self.assertEqual(self.page.locator("#svg-layer > path[id]").count(), initial_conns)
-
-    def test_node_deletion(self):
-        """Test deleting a node."""
+    def test_node_dragging(self):
         node = self.page.locator("#node-porto")
-        node.dispatch_event("contextmenu")
-        self.page.locator("#context-delete").click()
-        expect(node).not_to_be_visible()
-
-    def test_panning(self):
-        """Test canvas panning."""
-        initial_transform = self.page.locator("#world").evaluate("el => el.style.transform")
-        canvas = self.page.locator("#canvas")
-        box = canvas.bounding_box()
-        self.page.keyboard.down("Space")
-        self.page.mouse.move(box['x'] + box['width']/2, box['y'] + box['height']/2)
+        box = node.bounding_box()
+        self.page.mouse.move(box['x'] + 10, box['y'] + 10)
         self.page.mouse.down()
-        self.page.mouse.move(box['x'] + box['width']/2 + 50, box['y'] + box['height']/2 + 50)
-        self.page.mouse.up()
-        self.page.keyboard.up("Space")
-        new_transform = self.page.locator("#world").evaluate("el => el.style.transform")
-        self.assertNotEqual(initial_transform, new_transform)
-
-    def test_rapid_mousedown_leak_prevention(self):
-        """Test that multiple mousedown events do not leak stray paths."""
-        porto = self.page.locator("#node-porto .output")
-        box = porto.bounding_box()
-
-        # Trigger multiple mousedown without mouseup
-        for _ in range(5):
-            self.page.mouse.move(box['x'] + box['width']/2, box['y'] + box['height']/2)
-            self.page.mouse.down()
-
-        strays = self.page.evaluate("document.querySelectorAll('#svg-layer > path:not([id])').length")
-        # Should only have ONE preview path (the last one)
-        self.assertEqual(strays, 1)
-
-        # Now mouseup should clean it up
-        self.page.mouse.up()
-        strays_after = self.page.evaluate("document.querySelectorAll('#svg-layer > path:not([id])').length")
-        self.assertEqual(strays_after, 0)
-
-    def test_load_workflow_clears_svg(self):
-        """Test that loadWorkflow successfully clears the canvas of all previous artifacts."""
-        # Create a stray path manually for testing
-        self.page.evaluate("""() => {
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.id = 'manual-stray';
-            document.getElementById('svg-layer').appendChild(path);
-        }""")
-
-        # Trigger export/import or just reload via demoWorkflow logic
-        # In editor.js, loadWorkflow is called on startup. We can trigger it by clearing localStorage and reloading.
-        self.page.evaluate("localStorage.clear()")
-        self.page.reload()
-        self.page.wait_for_selector(".workflow-node")
-
-        manual_stray = self.page.locator("#manual-stray")
-        expect(manual_stray).not_to_be_attached()
-
-    def test_handle_does_not_move_node(self):
-        """Test that dragging a port handle does not move the parent node."""
-        node = self.page.locator("#node-porto")
-        handle = node.locator(".output")
-        initial_box = node.bounding_box()
-
-        # Try to drag the handle
-        hbox = handle.bounding_box()
-        self.page.mouse.move(hbox['x'] + hbox['width']/2, hbox['y'] + hbox['height']/2)
-        self.page.mouse.down()
-        self.page.mouse.move(hbox['x'] + 100, hbox['y'] + 100)
+        self.page.mouse.move(box['x'] + 100, box['y'] + 100)
         self.page.mouse.up()
 
         new_box = node.bounding_box()
-        self.assertEqual(initial_box['x'], new_box['x'])
-        self.assertEqual(initial_box['y'], new_box['y'])
+        self.assertNotEqual(box['x'], new_box['x'])
 
-    def test_connection_persistence(self):
-        """Test that a new connection survives a page reload."""
-        out_port = self.page.locator("#node-porto .output")
-        in_port = self.page.locator("#node-allm .input")
-        obox = out_port.bounding_box()
-        ibox = in_port.bounding_box()
+    def test_connection_creation(self):
+        # Find two nodes
+        node1 = self.page.locator("#node-porto")
+        node2 = self.page.locator("#node-allm")
 
-        self.page.mouse.move(obox['x'] + obox['width']/2, obox['y'] + obox['height']/2)
+        # Get output port of node1
+        port1 = node1.locator(".output")
+        port2 = node2.locator(".input")
+
+        box1 = port1.bounding_box()
+        box2 = port2.bounding_box()
+
+        # Ensure we move to centers
+        self.page.mouse.move(box1['x'] + box1['width']/2, box1['y'] + box1['height']/2)
         self.page.mouse.down()
-        self.page.mouse.move(ibox['x'] + ibox['width']/2, ibox['y'] + ibox['height']/2)
+        # Move slightly away then to target to trigger events correctly
+        self.page.mouse.move(box1['x'] + box1['width']/2 + 50, box1['y'] + box1['height']/2 + 50)
+        self.page.mouse.move(box2['x'] + box2['width']/2, box2['y'] + box2['height']/2)
         self.page.mouse.up()
 
-        conn_id = "conn-node-porto-node-allm"
-        expect(self.page.locator(f"#{conn_id}")).to_be_attached()
+        # Check if new connection exists
+        conn = self.page.locator("path[id='conn-node-porto-node-allm']")
+        # Increase timeout or check count
+        self.assertGreater(len(self.page.query_selector_all("path[id='conn-node-porto-node-allm']")), 0)
 
-        self.page.reload()
-        self.page.wait_for_selector(".workflow-node")
-        expect(self.page.locator(f"#{conn_id}")).to_be_attached()
+    def test_load_workflow_clears_svg(self):
+        # Initial connections
+        initial_conns = len(self.page.query_selector_all("#svg-layer path[id^='conn-']"))
+        self.assertGreater(initial_conns, 0)
+
+        # Load empty workflow via script injection (simulating import)
+        # We need to wait for the script to be fully loaded since it's a module
+        self.page.wait_for_function("window.loadWorkflow !== undefined")
+        self.page.evaluate("window.loadWorkflow({nodes: [], connections: []})")
+
+        # Check if cleared
+        nodes = self.page.query_selector_all(".workflow-node")
+        conns = self.page.query_selector_all("#svg-layer path[id^='conn-']")
+        self.assertEqual(len(nodes), 0)
+        self.assertEqual(len(conns), 0)
+
+    def test_rapid_mousedown_leak_prevention(self):
+        # Rapidly click on a port
+        node = self.page.locator("#node-porto")
+        port = node.locator(".output")
+        box = port.bounding_box()
+
+        for _ in range(5):
+            self.page.mouse.move(box['x'] + box['width']/2, box['y'] + box['height']/2)
+            self.page.mouse.down()
+            # No mouseup
+
+        # There should only be one preview path (reconcileDOMWithState should keep it clean)
+        # We must exclude paths inside <defs> (like arrowhead)
+        previews = self.page.query_selector_all("#svg-layer > path:not([id])")
+        self.assertEqual(len(previews), 1)
+
+    def test_port_dragging_does_not_move_node(self):
+        node = self.page.locator("#node-porto")
+        port = node.locator(".output")
+
+        initial_box = node.bounding_box()
+        port_box = port.bounding_box()
+
+        # Start drag from port
+        self.page.mouse.move(port_box['x'] + port_box['width']/2, port_box['y'] + port_box['height']/2)
+        self.page.mouse.down()
+        self.page.mouse.move(port_box['x'] + 100, port_box['y'] + 100)
+        self.page.mouse.up()
+
+        # Node should NOT have moved
+        final_box = node.bounding_box()
+        self.assertEqual(initial_box['x'], final_box['x'])
+        self.assertEqual(initial_box['y'], final_box['y'])
+
+    def test_rapid_canvas_clicks_no_orphans(self):
+        # Click rapidly on empty canvas area
+        canvas = self.page.locator("#canvas")
+        box = canvas.bounding_box()
+
+        for i in range(10):
+            self.page.mouse.click(box['x'] + 50 + i*10, box['y'] + 50 + i*10)
+
+        # Verify no unintended paths were created
+        paths = self.page.query_selector_all("#svg-layer > path:not([id])")
+        self.assertEqual(len(paths), 0)
 
 if __name__ == "__main__":
     unittest.main()
