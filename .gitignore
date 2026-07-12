@@ -1,8 +1,1 @@
 node_modules/
-*.log
-__pycache__/
-prismquanta.db
-.DS_Store
-dist/
-verification/
-*.png

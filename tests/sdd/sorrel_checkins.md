@@ -22,3 +22,4 @@
 
 ### Architectural Restrictions
 - **AR-1**: Event listeners for global mouse actions (`mousemove`, `mouseup`) must be attached to the `window` object when active to prevent state desynchronization during boundary crossing.
+- **AR-2**: State persistence operations (`saveToLocalStorage`) are prohibited within high-frequency event handlers (e.g., `mousemove`, `wheel`, `drag`, `input`). Discrete actions must use `change` events or end-of-interaction triggers.
